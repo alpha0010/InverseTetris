@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="InveresTetris" />
+		<Option pch_mode="2" />
+		<Option compiler="null" />
+		<Build>
+			<Target title="default">
+				<Option type="4" />
+				<Option compiler="null" />
+			</Target>
+		</Build>
+		<Unit filename="coffeescripts/inverse_tetris.coffee" />
+		<Unit filename="coffeescripts/tetris_ai.coffee" />
+		<Unit filename="index.html" />
+		<Unit filename="javascripts/inverse_tetris.js" />
+		<Unit filename="javascripts/tetris_ai.js" />
+		<Extensions>
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

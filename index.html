@@ -1,0 +1,36 @@
+<html>
+<head>
+    <title>Negate Tetris</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <script type="text/javascript" src="javascripts/inverse_tetris.js"></script>
+    <script type="text/javascript" src="javascripts/tetris_ai.js"></script>
+    <style type="text/css">
+        body {
+          background-color: rgb(38, 38, 38);
+        }
+
+        canvas {
+          border: 1px solid rgba(242, 198, 65, 0.1);
+          margin: 2px auto 0 auto;
+          display: block;
+        }
+
+        p.controls {
+          text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameBoard"></canvas>
+    <script type="text/javascript">
+        var game = new InverseTetris(new TetrisAI());
+    </script>
+    <p class="controls">
+        <!-- Debugging controls -->
+        <button onclick="game.moveLeft()">Move Left</button>
+        <button onclick="game.moveRight()">Move Right</button> <br />
+        <button onclick="game.rotateCCW()">Rotate CCW</button>
+        <button onclick="game.rotateCW()">Rotate CW</button>
+    </p>
+</body>
+</html>
