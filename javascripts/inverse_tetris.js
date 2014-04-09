@@ -13,6 +13,10 @@
 
     InverseTetris.prototype.numberOfColumns = 10;
 
+    InverseTetris.prototype.rightBuffer = 5;
+
+    InverseTetris.prototype.bottemBuffer = 4;
+
     InverseTetris.prototype.tickLength = 175;
 
     InverseTetris.prototype.aiTickLength = 15;
@@ -22,6 +26,8 @@
     InverseTetris.prototype.pieces = null;
 
     InverseTetris.prototype.fallingBlock = null;
+
+    InverseTetris.prototype.nextBlock = null;
 
     InverseTetris.prototype.aiController = null;
 
@@ -33,15 +39,15 @@
       var canvas, h, maxCellSize, w;
       w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-      maxCellSize = Math.min((w - 20) / this.numberOfColumns - 1, (h - 120) / this.numberOfRows - 1);
+      maxCellSize = Math.min((w - 20) / (this.numberOfColumns + this.rightBuffer) - 1, (h - 120) / (this.numberOfRows + this.bottemBuffer) - 1);
       if (maxCellSize > this.cellSize) {
         this.cellSize = Math.floor((maxCellSize + this.cellSize) / 2);
       } else {
         this.cellSize = Math.floor(maxCellSize);
       }
       canvas = document.getElementById("gameBoard");
-      canvas.width = (this.cellSize + 1) * this.numberOfColumns + 1;
-      canvas.height = (this.cellSize + 1) * this.numberOfRows + 1;
+      canvas.width = (this.cellSize + 1) * (this.numberOfColumns + this.rightBuffer) + 1;
+      canvas.height = (this.cellSize + 1) * (this.numberOfRows + this.bottemBuffer) + 1;
       this.drawingContext = canvas.getContext("2d");
       this.initPieces();
       this.initBoard();
@@ -88,7 +94,12 @@
 
     InverseTetris.prototype.tick = function() {
       if (this.fallingBlock === null) {
-        this.fallingBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
+        if (this.nextBlock === null) {
+          this.nextBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
+        }
+        this.fallingBlock = this.nextBlock;
+        this.nextBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
+        this.drawNextBlock();
       }
       if (this.blockIntersects(this.fallingBlock.row + 1, this.fallingBlock.column)) {
         if (this.fallingBlock.row === -1) {
@@ -223,17 +234,34 @@
       }
     };
 
-    InverseTetris.prototype.drawCell = function(cell, row, column) {
+    InverseTetris.prototype.drawNextBlock = function() {
+      var cell, shape, shapeColumn, shapeRow, _i, _j, _ref, _ref1;
+      this.drawingContext.fillStyle = "rgb(38,38,38)";
+      this.drawingContext.strokeStyle = "transparent";
+      this.drawingContext.fillRect(this.numberOfColumns * (this.cellSize + 1) + 1, 0, this.rightBuffer * (this.cellSize + 1), this.numberOfRows * (this.cellSize + 1));
+      cell = this.createCell();
+      cell.isFull = true;
+      cell.fillStyle = this.nextBlock.fillStyle;
+      shape = this.nextBlock.geometry;
+      for (shapeRow = _i = 0, _ref = shape.length; 0 <= _ref ? _i < _ref : _i > _ref; shapeRow = 0 <= _ref ? ++_i : --_i) {
+        for (shapeColumn = _j = 0, _ref1 = shape[shapeRow].length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; shapeColumn = 0 <= _ref1 ? ++_j : --_j) {
+          if (shape[shapeRow][shapeColumn] === 1) {
+            this.drawCell(cell, 1 + shapeRow, this.numberOfColumns + 1 + shapeColumn);
+          }
+        }
+      }
+    };
+
+    InverseTetris.prototype.drawCell = function(cell, row, column, strokeCol) {
       var backgroundCol, bevelRad, fillStyle, gradient, x, y;
+      if (strokeCol == null) {
+        strokeCol = "rgb(54,51,40)";
+      }
       x = column * (this.cellSize + 1) + 1;
       y = row * (this.cellSize + 1) + 1;
       backgroundCol = "rgb(38,38,38)";
-      if (cell.isFull) {
-        fillStyle = cell.fillStyle;
-      } else {
-        fillStyle = backgroundCol;
-      }
-      this.drawingContext.strokeStyle = "rgb(54,51,40)";
+      fillStyle = cell.isFull ? cell.fillStyle : backgroundCol;
+      this.drawingContext.strokeStyle = strokeCol;
       this.drawingContext.strokeRect(x, y, this.cellSize, this.cellSize);
       this.drawingContext.fillStyle = fillStyle;
       this.drawingContext.fillRect(x, y, this.cellSize, this.cellSize);

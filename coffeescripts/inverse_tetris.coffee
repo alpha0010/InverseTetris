@@ -3,25 +3,28 @@ class InverseTetris
     cellSize: 25
     numberOfRows: 20
     numberOfColumns: 10
+    rightBuffer: 5  # extra columns
+    bottemBuffer: 4 # extra rows
     tickLength: 175
     aiTickLength: 15
     drawingContext: null
     pieces: null
     fallingBlock: null
+    nextBlock: null # the next block to come
     aiController: null
 
 
     constructor: (aiModule) ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
-        maxCellSize = Math.min((w - 20) / @numberOfColumns - 1, (h - 120) / @numberOfRows - 1)
+        maxCellSize = Math.min((w - 20) / (@numberOfColumns + @rightBuffer) - 1, (h - 120) / (@numberOfRows + @bottemBuffer) - 1)
         if (maxCellSize > @cellSize)
             @cellSize = Math.floor((maxCellSize + @cellSize) / 2)
         else
             @cellSize = Math.floor(maxCellSize)
         canvas = document.getElementById "gameBoard"
-        canvas.width  = (@cellSize + 1) * @numberOfColumns + 1
-        canvas.height = (@cellSize + 1) * @numberOfRows + 1
+        canvas.width  = (@cellSize + 1) * (@numberOfColumns + @rightBuffer) + 1
+        canvas.height = (@cellSize + 1) * (@numberOfRows + @bottemBuffer) + 1
         @drawingContext = canvas.getContext "2d"
         @initPieces()
         @initBoard()
@@ -91,7 +94,11 @@ class InverseTetris
     tick: =>
         if @fallingBlock is null
             # send random pieces
-            @fallingBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
+            if @nextBlock is null
+                @nextBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
+            @fallingBlock = @nextBlock
+            @nextBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
+            @drawNextBlock()
         if @blockIntersects @fallingBlock.row + 1, @fallingBlock.column
             return if @fallingBlock.row is -1 # Game Over!
             @applyBlock()
@@ -188,17 +195,29 @@ class InverseTetris
         return
 
 
-    drawCell: (cell, row, column) ->
+    drawNextBlock: ->
+        @drawingContext.fillStyle = "rgb(38,38,38)"
+        @drawingContext.strokeStyle = "transparent"
+        @drawingContext.fillRect @numberOfColumns * (@cellSize + 1) + 1, 0, @rightBuffer * (@cellSize + 1), @numberOfRows * (@cellSize + 1)
+        cell = @createCell()
+        cell.isFull = true
+        cell.fillStyle = @nextBlock.fillStyle
+        shape = @nextBlock.geometry
+        for shapeRow in [0...shape.length]
+            for shapeColumn in [0...shape[shapeRow].length]
+                if shape[shapeRow][shapeColumn] is 1
+                    @drawCell cell, 1 + shapeRow, @numberOfColumns + 1 + shapeColumn
+        return
+
+
+    drawCell: (cell, row, column, strokeCol = "rgb(54,51,40)") ->
         x = column * (@cellSize + 1) + 1
         y = row * (@cellSize + 1) + 1
         backgroundCol = "rgb(38,38,38)"
-        if cell.isFull
-            fillStyle = cell.fillStyle
-        else
-            fillStyle = backgroundCol
+        fillStyle = if cell.isFull then cell.fillStyle else backgroundCol
 #        @drawingContext.strokeStyle = "rgb(242,198,65)"
 #        @drawingContext.strokeStyle = "rgb(99,86,46)"
-        @drawingContext.strokeStyle = "rgb(54,51,40)"
+        @drawingContext.strokeStyle = strokeCol #= if strokeCol_Optional? then "rgb(54,51,40)" else strokeCol_Optional
         @drawingContext.strokeRect x, y, @cellSize, @cellSize
         @drawingContext.fillStyle = fillStyle
         @drawingContext.fillRect x, y, @cellSize, @cellSize
