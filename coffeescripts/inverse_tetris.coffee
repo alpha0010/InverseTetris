@@ -11,13 +11,14 @@ class InverseTetris
     pieces: null
     fallingBlock: null
     nextBlock: null # the next block to come
+    #nextBlockIdx: null
     aiController: null
 
 
     constructor: (aiModule) ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
-        maxCellSize = Math.min((w - 20) / (@numberOfColumns + @rightBuffer) - 1, (h - 120) / (@numberOfRows + @bottemBuffer) - 1)
+        maxCellSize = Math.min((w - 20) / (@numberOfColumns + @rightBuffer) - 1, (h - 20) / (@numberOfRows + @bottemBuffer) - 1)
         if (maxCellSize > @cellSize)
             @cellSize = Math.floor((maxCellSize + @cellSize) / 2)
         else
@@ -98,7 +99,11 @@ class InverseTetris
                 @nextBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
             @fallingBlock = @nextBlock
             @nextBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
+            #@nextBlockIdx = Math.floor(Math.random() * 7)
+            #@nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
             @drawNextBlock()
+            # test
+            @drawUI()
         if @blockIntersects @fallingBlock.row + 1, @fallingBlock.column
             return if @fallingBlock.row is -1 # Game Over!
             @applyBlock()
@@ -207,7 +212,35 @@ class InverseTetris
             for shapeColumn in [0...shape[shapeRow].length]
                 if shape[shapeRow][shapeColumn] is 1
                     @drawCell cell, 1 + shapeRow, @numberOfColumns + 1 + shapeColumn
+        @drawScore() # testing...
         return
+
+
+    drawUI: ->
+        oldCellSize = @cellSize
+        @cellSize /= 2
+        for pIdx in [0...@pieces.length]
+            block = @pieces[pIdx]
+            cell = @createCell()
+            cell.isFull = true
+            if true
+                cell.fillStyle = "rgb(#{block[0][0]},#{block[0][1]},#{block[0][2]})"
+            else # block used up...
+                cell.fillStyle = "gray"
+            shape = block[2..]
+            for shapeRow in [0...shape.length]
+                for shapeColumn in [0...shape[shapeRow].length]
+                    if shape[shapeRow][shapeColumn] is 1
+                        @drawCell cell, 2 * @numberOfRows + shapeRow + (if pIdx > 3 then 3 else 0), 1 + shapeColumn + 5 * (pIdx % 4)
+        @cellSize = oldCellSize
+        return
+
+
+    drawScore: ->
+        @drawingContext.font = "#{@cellSize}px Arial"
+        @drawingContext.fillStyle = "white"
+        @drawingContext.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1));
+        @drawingContext.fillText("*number*", (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1));
 
 
     drawCell: (cell, row, column, strokeCol = "rgb(54,51,40)") ->

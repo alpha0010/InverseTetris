@@ -39,7 +39,7 @@
       var canvas, h, maxCellSize, w;
       w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-      maxCellSize = Math.min((w - 20) / (this.numberOfColumns + this.rightBuffer) - 1, (h - 120) / (this.numberOfRows + this.bottemBuffer) - 1);
+      maxCellSize = Math.min((w - 20) / (this.numberOfColumns + this.rightBuffer) - 1, (h - 20) / (this.numberOfRows + this.bottemBuffer) - 1);
       if (maxCellSize > this.cellSize) {
         this.cellSize = Math.floor((maxCellSize + this.cellSize) / 2);
       } else {
@@ -100,6 +100,7 @@
         this.fallingBlock = this.nextBlock;
         this.nextBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
         this.drawNextBlock();
+        this.drawUI();
       }
       if (this.blockIntersects(this.fallingBlock.row + 1, this.fallingBlock.column)) {
         if (this.fallingBlock.row === -1) {
@@ -250,6 +251,39 @@
           }
         }
       }
+      this.drawScore();
+    };
+
+    InverseTetris.prototype.drawUI = function() {
+      var block, cell, oldCellSize, pIdx, shape, shapeColumn, shapeRow, _i, _j, _k, _ref, _ref1, _ref2;
+      oldCellSize = this.cellSize;
+      this.cellSize /= 2;
+      for (pIdx = _i = 0, _ref = this.pieces.length; 0 <= _ref ? _i < _ref : _i > _ref; pIdx = 0 <= _ref ? ++_i : --_i) {
+        block = this.pieces[pIdx];
+        cell = this.createCell();
+        cell.isFull = true;
+        if (true) {
+          cell.fillStyle = "rgb(" + block[0][0] + "," + block[0][1] + "," + block[0][2] + ")";
+        } else {
+          cell.fillStyle = "gray";
+        }
+        shape = block.slice(2);
+        for (shapeRow = _j = 0, _ref1 = shape.length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; shapeRow = 0 <= _ref1 ? ++_j : --_j) {
+          for (shapeColumn = _k = 0, _ref2 = shape[shapeRow].length; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; shapeColumn = 0 <= _ref2 ? ++_k : --_k) {
+            if (shape[shapeRow][shapeColumn] === 1) {
+              this.drawCell(cell, 2 * this.numberOfRows + shapeRow + (pIdx > 3 ? 3 : 0), 1 + shapeColumn + 5 * (pIdx % 4));
+            }
+          }
+        }
+      }
+      this.cellSize = oldCellSize;
+    };
+
+    InverseTetris.prototype.drawScore = function() {
+      this.drawingContext.font = "" + this.cellSize + "px Arial";
+      this.drawingContext.fillStyle = "white";
+      this.drawingContext.fillText("Score", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 5 * (this.cellSize + 1));
+      return this.drawingContext.fillText("*number*", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 6 * (this.cellSize + 1));
     };
 
     InverseTetris.prototype.drawCell = function(cell, row, column, strokeCol) {
