@@ -29,14 +29,31 @@
 
     InverseTetris.prototype.nextBlock = null;
 
+    InverseTetris.prototype.nextBlockIdx = null;
+
     InverseTetris.prototype.aiController = null;
 
+    InverseTetris.prototype.score = 0;
+
+    InverseTetris.prototype.totalMoves = 0;
+
+    InverseTetris.prototype.rectBounds = null;
+
+    InverseTetris.prototype.selectedShape = -1;
+
+    InverseTetris.prototype.uiBounds = null;
+
     function InverseTetris(aiModule) {
+      this.onEvtMouseClick = __bind(this.onEvtMouseClick, this);
+
+      this.onEvtMouseMove = __bind(this.onEvtMouseMove, this);
+
       this.aiTick = __bind(this.aiTick, this);
 
       this.tick = __bind(this.tick, this);
 
-      var canvas, h, maxCellSize, w;
+      var canvas, h, maxCellSize, w,
+        _this = this;
       w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
       maxCellSize = Math.min((w - 20) / (this.numberOfColumns + this.rightBuffer) - 1, (h - 20) / (this.numberOfRows + this.bottemBuffer) - 1);
@@ -51,6 +68,14 @@
       this.drawingContext = canvas.getContext("2d");
       this.initPieces();
       this.initBoard();
+      this.initUIBounds();
+      this.rectBounds = canvas.getBoundingClientRect();
+      canvas.addEventListener("mousemove", function(e) {
+        return _this.onEvtMouseMove(e);
+      });
+      canvas.addEventListener("mouseup", function(e) {
+        return _this.onEvtMouseClick(e);
+      });
       this.aiController = aiModule;
       this.tick();
     }
@@ -68,6 +93,19 @@
           cell = this.createCell();
           this.currentBoard[row][column] = cell;
         }
+      }
+    };
+
+    InverseTetris.prototype.initUIBounds = function() {
+      var halfSz, pIdx, _i, _ref;
+      this.uiBounds = [];
+      halfSz = this.cellSize / 2;
+      for (pIdx = _i = 0, _ref = this.pieces.length; 0 <= _ref ? _i < _ref : _i > _ref; pIdx = 0 <= _ref ? ++_i : --_i) {
+        this.uiBounds.push({
+          x: (1 + 5 * (pIdx % 4)) * (halfSz + 1) + 1,
+          y: (2 * this.numberOfRows + (pIdx > 3 ? 3 : 0)) * (halfSz + 1) + 1,
+          count: 4
+        });
       }
     };
 
@@ -93,14 +131,50 @@
     };
 
     InverseTetris.prototype.tick = function() {
+      var allEqual, allLessThanTwo, bound, cell, numFilledCells, row, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
       if (this.fallingBlock === null) {
         if (this.nextBlock === null) {
-          this.nextBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
+          this.nextBlockIdx = Math.floor(Math.random() * 7);
+          this.nextBlock = this.createFallingBlock(this.pieces[this.nextBlockIdx]);
         }
         this.fallingBlock = this.nextBlock;
-        this.nextBlock = this.createFallingBlock(this.pieces[Math.floor(Math.random() * 7)]);
+        this.uiBounds[this.nextBlockIdx].count -= 1;
+        allLessThanTwo = true;
+        allEqual = true;
+        _ref = this.uiBounds;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          bound = _ref[_i];
+          if (bound.count > 1) {
+            allLessThanTwo = false;
+          }
+          if (bound.count !== this.uiBounds[this.nextBlockIdx].count) {
+            allEqual = false;
+          }
+        }
+        if (allEqual) {
+          _ref1 = this.uiBounds;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            bound = _ref1[_j];
+            bound.count = 4;
+          }
+        } else if (allLessThanTwo) {
+          _ref2 = this.uiBounds;
+          for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+            bound = _ref2[_k];
+            bound.count += 2;
+          }
+        }
+        if (this.selectedShape !== -1 && this.uiBounds[this.selectedShape].count <= 0) {
+          this.selectedShape = -1;
+        }
+        this.nextBlockIdx = 0;
+        while (this.uiBounds[this.nextBlockIdx].count <= 0) {
+          this.nextBlockIdx = (this.nextBlockIdx + 1) % 7;
+        }
+        this.nextBlock = this.createFallingBlock(this.pieces[this.nextBlockIdx]);
         this.drawNextBlock();
         this.drawUI();
+        this.tickLength = 175;
       }
       if (this.blockIntersects(this.fallingBlock.row + 1, this.fallingBlock.column)) {
         if (this.fallingBlock.row === -1) {
@@ -108,6 +182,19 @@
         }
         this.applyBlock();
         this.fallingBlock = null;
+        numFilledCells = 0;
+        _ref3 = this.currentBoard;
+        for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+          row = _ref3[_l];
+          for (_m = 0, _len4 = row.length; _m < _len4; _m++) {
+            cell = row[_m];
+            if (cell.isFull) {
+              numFilledCells += 1;
+            }
+          }
+        }
+        this.totalMoves += 1;
+        this.score += Math.floor(Math.pow(numFilledCells, 0.6) * 4) / 4;
       } else {
         this.fallingBlock.row += 1;
       }
@@ -136,9 +223,42 @@
           this.rotateCW();
           break;
         default:
+          this.tickLength = Math.max(64, 175 - this.totalMoves);
           return;
       }
+      this.tickLength = 175;
       return setTimeout(this.aiTick, this.aiTickLength);
+    };
+
+    InverseTetris.prototype.onEvtMouseMove = function(evt) {
+      var cIdx, corner, xPos, yPos, _i, _ref;
+      xPos = evt.clientX - this.rectBounds.left;
+      yPos = evt.clientY - this.rectBounds.top;
+      for (cIdx = _i = 0, _ref = this.uiBounds.length; 0 <= _ref ? _i < _ref : _i > _ref; cIdx = 0 <= _ref ? ++_i : --_i) {
+        corner = this.uiBounds[cIdx];
+        if (xPos > corner.x && xPos < corner.x + 2 * this.cellSize && yPos > corner.y && yPos < corner.y + this.cellSize) {
+          if (this.uiBounds[cIdx].count <= 0) {
+            cIdx = -1;
+          }
+          if (this.selectedShape !== cIdx) {
+            this.selectedShape = cIdx;
+            this.drawUI();
+          }
+          return;
+        }
+      }
+      if (this.selectedShape !== -1) {
+        this.selectedShape = -1;
+        this.drawUI();
+      }
+    };
+
+    InverseTetris.prototype.onEvtMouseClick = function(evt) {
+      if (this.selectedShape !== -1) {
+        this.nextBlock = this.createFallingBlock(this.pieces[this.selectedShape]);
+        this.nextBlockIdx = this.selectedShape;
+        this.drawNextBlock();
+      }
     };
 
     InverseTetris.prototype.blockIntersects = function(row, column) {
@@ -255,26 +375,36 @@
     };
 
     InverseTetris.prototype.drawUI = function() {
-      var block, cell, oldCellSize, pIdx, shape, shapeColumn, shapeRow, _i, _j, _k, _ref, _ref1, _ref2;
+      var block, cell, oldCellSize, pIdx, shape, shapeColumn, shapeRow, strokeCol, _i, _j, _k, _ref, _ref1, _ref2;
+      this.drawingContext.fillStyle = "rgb(38,38,38)";
+      this.drawingContext.strokeStyle = "transparent";
+      this.drawingContext.fillRect(0, this.numberOfRows * (this.cellSize + 1) + 1, (this.numberOfColumns + this.rightBuffer) * (this.cellSize + 1), this.bottemBuffer * (this.cellSize + 1));
       oldCellSize = this.cellSize;
       this.cellSize /= 2;
       for (pIdx = _i = 0, _ref = this.pieces.length; 0 <= _ref ? _i < _ref : _i > _ref; pIdx = 0 <= _ref ? ++_i : --_i) {
         block = this.pieces[pIdx];
         cell = this.createCell();
         cell.isFull = true;
-        if (true) {
+        if (this.uiBounds[pIdx].count > 0) {
           cell.fillStyle = "rgb(" + block[0][0] + "," + block[0][1] + "," + block[0][2] + ")";
         } else {
           cell.fillStyle = "gray";
+        }
+        strokeCol = "transparent";
+        if (pIdx === this.selectedShape) {
+          strokeCol = "red";
         }
         shape = block.slice(2);
         for (shapeRow = _j = 0, _ref1 = shape.length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; shapeRow = 0 <= _ref1 ? ++_j : --_j) {
           for (shapeColumn = _k = 0, _ref2 = shape[shapeRow].length; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; shapeColumn = 0 <= _ref2 ? ++_k : --_k) {
             if (shape[shapeRow][shapeColumn] === 1) {
-              this.drawCell(cell, 2 * this.numberOfRows + shapeRow + (pIdx > 3 ? 3 : 0), 1 + shapeColumn + 5 * (pIdx % 4));
+              this.drawCell(cell, 2 * this.numberOfRows + shapeRow + (pIdx > 3 ? 3 : 0), 1 + shapeColumn + 5 * (pIdx % 4), strokeCol);
             }
           }
         }
+        this.drawingContext.font = "" + this.cellSize + "px Arial";
+        this.drawingContext.fillStyle = "white";
+        this.drawingContext.fillText(this.uiBounds[pIdx].count, this.uiBounds[pIdx].x, this.uiBounds[pIdx].y - 1);
       }
       this.cellSize = oldCellSize;
     };
@@ -283,7 +413,11 @@
       this.drawingContext.font = "" + this.cellSize + "px Arial";
       this.drawingContext.fillStyle = "white";
       this.drawingContext.fillText("Score", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 5 * (this.cellSize + 1));
-      return this.drawingContext.fillText("*number*", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 6 * (this.cellSize + 1));
+      if (this.totalMoves > 0) {
+        this.drawingContext.fillText(Math.round(1000 * this.score / this.totalMoves), (this.numberOfColumns + 0.5) * (this.cellSize + 1), 6 * (this.cellSize + 1));
+      }
+      this.drawingContext.fillText("Blocks", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 7.4 * (this.cellSize + 1));
+      return this.drawingContext.fillText(this.totalMoves, (this.numberOfColumns + 0.5) * (this.cellSize + 1), 8.4 * (this.cellSize + 1));
     };
 
     InverseTetris.prototype.drawCell = function(cell, row, column, strokeCol) {
