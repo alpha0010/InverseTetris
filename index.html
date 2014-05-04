@@ -1,0 +1,24 @@
+<html>
+<head>
+	<title>Negate Tetris</title>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<script type="text/javascript" src="js/inverse_tetris.js"></script>
+	<script type="text/javascript" src="js/tetris_ai.js"></script>
+	<style type="text/css">
+		body {
+		  background-color: rgb(38, 38, 38);
+		}
+
+		canvas {
+		  margin: 2px auto 0 auto;
+		  display: block;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="gameBoard"></canvas>
+	<script type="text/javascript">
+		var game = new InverseTetris(new TetrisAI());
+	</script>
+</body>
+</html>
