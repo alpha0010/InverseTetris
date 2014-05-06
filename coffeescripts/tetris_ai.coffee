@@ -1,12 +1,8 @@
+# an AI module
 class TetrisAI
-    lastTime: -1
-    moveCache: null
 
-    constructor: ->
-        x = 1
-
-
-    chooseMove: (currentBoard, block, timeCode) ->
+    # AI entry point
+    chooseMove: (currentBoard, block) ->
         tstBrd = @cloneBoard currentBoard
         tstBlck = @cloneBlock block
         # move:
@@ -42,15 +38,9 @@ class TetrisAI
                     minVal = tstVal
                     bestMove = 4
         return bestMove
-        # unused
-        if timeCode is @lastTime
-            if @moveCache.length > 0
-                return @moveCache.shift()
-            else
-                return -1
-        return -1
 
 
+    # return the best score possible if we choose to rotate CCW
     testRotateCCW: (board, block)->
         oldGeom = block.geometry
         oldCol = block.column
@@ -66,6 +56,7 @@ class TetrisAI
         return minVal
 
 
+    # return the best score possible if we choose to rotate CW
     testRotateCW: (board, block)->
         oldGeom = block.geometry
         oldCol = block.column
@@ -81,6 +72,7 @@ class TetrisAI
         return minVal
 
 
+    # return the best score possible if we choose to move left
     testMoveLeft: (board, block)->
         minVal = Number.MAX_VALUE
         while block.column > 0
@@ -91,6 +83,7 @@ class TetrisAI
         return minVal
 
 
+    # return the best score possible if we choose to move right
     testMoveRight: (board, block)->
         minVal = Number.MAX_VALUE
         while block.column + block.geometry[0].length < board[0].length
@@ -112,6 +105,7 @@ class TetrisAI
         return outArray
 
 
+    # deep copy the passed board
     cloneBoard: (board) ->
         out = []
         for row in [0...board.length]
@@ -121,6 +115,7 @@ class TetrisAI
         return out
 
 
+    # deep copy the passed block
     cloneBlock: (block) ->
         out =
             row: block.row
@@ -134,10 +129,12 @@ class TetrisAI
         return out
 
 
+    # give a score for the passed configuration
     scoreMove: (currentBoard, block) ->
         return @evaluate @testDrop currentBoard, block
 
 
+    # return a copy of the board with the block applied where it would fall
     testDrop: (currentBoard, block) ->
         delta = 0
         while not @blockIntersects currentBoard, block, block.row + delta + 1, block.column
@@ -153,6 +150,7 @@ class TetrisAI
         return out
 
 
+    # test if the block would intersect board geometry if positioned at (row, column)
     blockIntersects: (board, block, row, column) ->
         for shapeRow in [0...block.geometry.length]
             if row + shapeRow < 0 or row + shapeRow >= board.length
@@ -165,7 +163,7 @@ class TetrisAI
         return false
 
 
-    # lower is better
+    # heuristic for scoring the board state, lower is better
     evaluate: (board) ->
         score = 0
         @checkLines board
@@ -187,23 +185,27 @@ class TetrisAI
         return score
 
 
+    # helper: give better scores for items keeping the middle clear
     calcColumnMultiplier: (column, len) ->
         val = (if column > len / 2 then len - column - 1 else column) / len
         return (val + 2) / 2.0
 
 
+    # remove filled lines
     checkLines: (board) ->
         for row in [0...board.length]
             @removeRow board, row if @arrayIsFull board[row]
         return
 
 
+    # helper: true if theArray is filled
     arrayIsFull: (theArray) ->
         for filled in theArray
             return false if not filled
         return true
 
 
+    # remove the specified row, shifting above rows down
     removeRow: (board, row) ->
         board.splice(row, 1)
         board.splice(0, 0, [])
@@ -212,5 +214,5 @@ class TetrisAI
         return
 
 
-# make this class available
+# make this class available in global scope
 window.TetrisAI = TetrisAI

@@ -1,3 +1,4 @@
+# the game
 class InverseTetris
     currentBoard: null
     cellSize: 25
@@ -20,6 +21,7 @@ class InverseTetris
     uiBounds: null
 
 
+    # set up the starting state
     constructor: (aiModule) ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
@@ -32,6 +34,9 @@ class InverseTetris
         canvas.width  = (@cellSize + 1) * (@numberOfColumns + @rightBuffer) + 1
         canvas.height = (@cellSize + 1) * (@numberOfRows + @bottemBuffer) + 1
         @drawingContext = canvas.getContext "2d"
+        @drawingContext.fillStyle = "rgb(38,38,38)"
+        @drawingContext.strokeStyle = "transparent"
+        @drawingContext.fillRect 0, 0, canvas.width, canvas.height
         @initPieces()
         @initBoard()
         @initUIBounds()
@@ -75,6 +80,7 @@ class InverseTetris
         ]
 
 
+    # init the starting board
     initBoard: ->
         @currentBoard = []
         for row in [0...@numberOfRows]
@@ -85,6 +91,7 @@ class InverseTetris
         return
 
 
+    # init UI boundaries
     initUIBounds: ->
         @uiBounds = []
         halfSz = @cellSize / 2
@@ -93,6 +100,7 @@ class InverseTetris
         return
 
 
+    # create a default cell structure
     createCell: ->
         isFull: false
         fillStyle: null
@@ -109,9 +117,9 @@ class InverseTetris
         return outArray
 
 
+    # increment the game one 'tick' into the future
     tick: =>
         if @fallingBlock is null
-            # send random pieces
             if @nextBlock is null
                 @nextBlockIdx = Math.floor(Math.random() * 7)
                 @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
@@ -126,15 +134,12 @@ class InverseTetris
                 bound.count = 4 for bound in @uiBounds
             else if allLessThanTwo
                 bound.count += 2 for bound in @uiBounds
-            #@nextBlock = @createFallingBlock @pieces[Math.floor(Math.random() * 7)]
             @selectedShape = -1 if @selectedShape != -1 and @uiBounds[@selectedShape].count <= 0
-            #@nextBlockIdx = Math.floor(Math.random() * 7)
-            @nextBlockIdx = 0
+            @nextBlockIdx = if @selectedShape != -1 then @selectedShape else 0
             while @uiBounds[@nextBlockIdx].count <= 0
                 @nextBlockIdx = (@nextBlockIdx + 1) % 7
             @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
             @drawNextBlock()
-            # test
             @drawUI()
             @tickLength = 175 # reset
         if @blockIntersects @fallingBlock.row + 1, @fallingBlock.column
@@ -154,10 +159,11 @@ class InverseTetris
         setTimeout @aiTick, @aiTickLength
 
 
+    # ask if the AI module wants to do another move
     aiTick: =>
         if @fallingBlock is null
             return
-        move = @aiController.chooseMove @currentBoard, @fallingBlock, 1
+        move = @aiController.chooseMove @currentBoard, @fallingBlock
         switch move
             when 1
                 @moveLeft()
@@ -171,9 +177,11 @@ class InverseTetris
                 @tickLength = Math.max 64, 175 - @totalMoves
                 return
         @tickLength = 175 # reset: should not happen, but this AI sometimes changes its mind
+                          # on second thought, this behaviour makes the AI a more interesting opponent
         setTimeout @aiTick, @aiTickLength
 
 
+    # update the selection highlight
     onEvtMouseMove: (evt) =>
         xPos = evt.clientX - @rectBounds.left
         yPos = evt.clientY - @rectBounds.top
@@ -191,6 +199,7 @@ class InverseTetris
         return
 
 
+    # update the next queued block
     onEvtMouseClick: (evt) =>
         if @selectedShape != -1
             @nextBlock = @createFallingBlock @pieces[@selectedShape]
@@ -199,10 +208,10 @@ class InverseTetris
         return
 
 
+    # test if the current falling block would intersect part of the board
     blockIntersects: (row, column) ->
         for shapeRow in [0...@fallingBlock.geometry.length]
-            if row + shapeRow < 0 or row + shapeRow >= @numberOfRows
-                return true
+            return true if row + shapeRow < 0 or row + shapeRow >= @numberOfRows
             for shapeColumn in [0...@fallingBlock.geometry[shapeRow].length]
                 if column + shapeColumn < 0 or column + shapeColumn >= @numberOfColumns
                     return true
@@ -211,6 +220,7 @@ class InverseTetris
         return false
 
 
+    # init a block object off its raw geometry
     createFallingBlock: (shape) ->
         row: -1
         column: Math.floor((@numberOfColumns - shape[2].length) / 2)
@@ -219,6 +229,7 @@ class InverseTetris
         geometry: shape[2..]
 
 
+    # make the falling block static
     applyBlock: ->
         shape = @fallingBlock.geometry
         for row in [0...shape.length]
@@ -230,18 +241,21 @@ class InverseTetris
         @checkLines()
 
 
+    # check for filled rows
     checkLines: ->
         for row in [0...@numberOfRows]
             @removeRow row if @arrayIsFull @currentBoard[row]
         return
 
 
+    # helper: true if theArray isFull
     arrayIsFull: (theArray) ->
         for cell in theArray
             return false if not cell.isFull
         return true
 
 
+    # remove the row from the board, and shift everything down
     removeRow: (row) ->
         @currentBoard.splice(row, 1)
         @currentBoard.splice(0, 0, [])
@@ -250,6 +264,7 @@ class InverseTetris
         return
 
 
+    # draw the board
     drawGrid: ->
         for row in [0...@numberOfRows]
             for column in [0...@numberOfColumns]
@@ -266,6 +281,7 @@ class InverseTetris
         return
 
 
+    # draw the queued block
     drawNextBlock: ->
         @drawingContext.fillStyle = "rgb(38,38,38)"
         @drawingContext.strokeStyle = "transparent"
@@ -282,10 +298,11 @@ class InverseTetris
         return
 
 
+    # draw the UI bar at the bottom
     drawUI: ->
         @drawingContext.fillStyle = "rgb(38,38,38)"
         @drawingContext.strokeStyle = "transparent"
-        @drawingContext.fillRect 0, @numberOfRows * (@cellSize + 1) + 1, (@numberOfColumns + @rightBuffer) * (@cellSize + 1), @bottemBuffer * (@cellSize + 1)
+        @drawingContext.fillRect 0, @numberOfRows * (@cellSize + 1) + 1, (@numberOfColumns) * (@cellSize + 1), @bottemBuffer * (@cellSize + 1)
         oldCellSize = @cellSize
         @cellSize /= 2
         for pIdx in [0...@pieces.length]
@@ -311,25 +328,24 @@ class InverseTetris
         return
 
 
+    # display the current score
     drawScore: ->
         @drawingContext.font = "#{@cellSize}px Arial"
         @drawingContext.fillStyle = "white"
         @drawingContext.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1));
-        #@drawingContext.fillText(Math.floor(@score), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1));
         if (@totalMoves > 0)
             @drawingContext.fillText(Math.round(1000 * @score / @totalMoves), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1));
         @drawingContext.fillText("Blocks", (@numberOfColumns + 0.5) * (@cellSize + 1), 7.4 * (@cellSize + 1));
         @drawingContext.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1));
 
 
+    # draw a (styled) cell
     drawCell: (cell, row, column, strokeCol = "rgb(54,51,40)") ->
         x = column * (@cellSize + 1) + 1
         y = row * (@cellSize + 1) + 1
         backgroundCol = "rgb(38,38,38)"
         fillStyle = if cell.isFull then cell.fillStyle else backgroundCol
-#        @drawingContext.strokeStyle = "rgb(242,198,65)"
-#        @drawingContext.strokeStyle = "rgb(99,86,46)"
-        @drawingContext.strokeStyle = strokeCol #= if strokeCol_Optional? then "rgb(54,51,40)" else strokeCol_Optional
+        @drawingContext.strokeStyle = strokeCol
         @drawingContext.strokeRect x, y, @cellSize, @cellSize
         @drawingContext.fillStyle = fillStyle
         @drawingContext.fillRect x, y, @cellSize, @cellSize
@@ -416,6 +432,7 @@ class InverseTetris
             @drawingContext.fill()
 
 
+    # move the falling block left (if allowed)
     moveLeft: ->
         if @fallingBlock is null or @blockIntersects @fallingBlock.row, @fallingBlock.column - 1
             return
@@ -423,6 +440,7 @@ class InverseTetris
         @drawGrid()
 
 
+    # move the falling block right (if allowed)
     moveRight: ->
         if @fallingBlock is null or @blockIntersects @fallingBlock.row, @fallingBlock.column + 1
             return
@@ -430,6 +448,7 @@ class InverseTetris
         @drawGrid()
 
 
+    # rotate the falling block CCW (if allowed)
     rotateCCW: ->
         if @fallingBlock is null
             return
@@ -441,6 +460,7 @@ class InverseTetris
             @drawGrid()
 
 
+    # rotate the falling block CW (if allowed)
     rotateCW: ->
         if @fallingBlock is null
             return
@@ -452,5 +472,5 @@ class InverseTetris
             @drawGrid()
 
 
-# make this class available
+# make this class available to the global scope
 window.InverseTetris = InverseTetris

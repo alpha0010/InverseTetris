@@ -4,16 +4,9 @@
 
   TetrisAI = (function() {
 
-    TetrisAI.prototype.lastTime = -1;
+    function TetrisAI() {}
 
-    TetrisAI.prototype.moveCache = null;
-
-    function TetrisAI() {
-      var x;
-      x = 1;
-    }
-
-    TetrisAI.prototype.chooseMove = function(currentBoard, block, timeCode) {
+    TetrisAI.prototype.chooseMove = function(currentBoard, block) {
       var bestMove, minVal, oldGeom, tstBlck, tstBrd, tstVal;
       tstBrd = this.cloneBoard(currentBoard);
       tstBlck = this.cloneBlock(block);
@@ -51,14 +44,6 @@
         }
       }
       return bestMove;
-      if (timeCode === this.lastTime) {
-        if (this.moveCache.length > 0) {
-          return this.moveCache.shift();
-        } else {
-          return -1;
-        }
-      }
-      return -1;
     };
 
     TetrisAI.prototype.testRotateCCW = function(board, block) {

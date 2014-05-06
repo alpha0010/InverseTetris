@@ -66,6 +66,9 @@
       canvas.width = (this.cellSize + 1) * (this.numberOfColumns + this.rightBuffer) + 1;
       canvas.height = (this.cellSize + 1) * (this.numberOfRows + this.bottemBuffer) + 1;
       this.drawingContext = canvas.getContext("2d");
+      this.drawingContext.fillStyle = "rgb(38,38,38)";
+      this.drawingContext.strokeStyle = "transparent";
+      this.drawingContext.fillRect(0, 0, canvas.width, canvas.height);
       this.initPieces();
       this.initBoard();
       this.initUIBounds();
@@ -167,7 +170,7 @@
         if (this.selectedShape !== -1 && this.uiBounds[this.selectedShape].count <= 0) {
           this.selectedShape = -1;
         }
-        this.nextBlockIdx = 0;
+        this.nextBlockIdx = this.selectedShape !== -1 ? this.selectedShape : 0;
         while (this.uiBounds[this.nextBlockIdx].count <= 0) {
           this.nextBlockIdx = (this.nextBlockIdx + 1) % 7;
         }
@@ -208,7 +211,7 @@
       if (this.fallingBlock === null) {
         return;
       }
-      move = this.aiController.chooseMove(this.currentBoard, this.fallingBlock, 1);
+      move = this.aiController.chooseMove(this.currentBoard, this.fallingBlock);
       switch (move) {
         case 1:
           this.moveLeft();
@@ -378,7 +381,7 @@
       var block, cell, oldCellSize, pIdx, shape, shapeColumn, shapeRow, strokeCol, _i, _j, _k, _ref, _ref1, _ref2;
       this.drawingContext.fillStyle = "rgb(38,38,38)";
       this.drawingContext.strokeStyle = "transparent";
-      this.drawingContext.fillRect(0, this.numberOfRows * (this.cellSize + 1) + 1, (this.numberOfColumns + this.rightBuffer) * (this.cellSize + 1), this.bottemBuffer * (this.cellSize + 1));
+      this.drawingContext.fillRect(0, this.numberOfRows * (this.cellSize + 1) + 1, this.numberOfColumns * (this.cellSize + 1), this.bottemBuffer * (this.cellSize + 1));
       oldCellSize = this.cellSize;
       this.cellSize /= 2;
       for (pIdx = _i = 0, _ref = this.pieces.length; 0 <= _ref ? _i < _ref : _i > _ref; pIdx = 0 <= _ref ? ++_i : --_i) {
