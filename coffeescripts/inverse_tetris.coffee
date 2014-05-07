@@ -39,6 +39,8 @@ class InverseTetris
         @drawingContext.fillRect 0, 0, canvas.width, canvas.height
         @initPieces()
         @initBoard()
+        @nextBlockIdx = Math.floor(Math.random() * 7)
+        @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
         @initUIBounds()
         @rectBounds = canvas.getBoundingClientRect()
         canvas.addEventListener "mousemove", (e) => @onEvtMouseMove(e)
@@ -120,8 +122,14 @@ class InverseTetris
     # increment the game one 'tick' into the future
     tick: =>
         if @fallingBlock is null
-            if @nextBlock is null
-                @nextBlockIdx = Math.floor(Math.random() * 7)
+            if @nextBlock is null # let AI choose (user was too slow)
+                minVal = Number.MAX_VALUE
+                for idx in [0...@uiBounds.length]
+                    if @uiBounds[idx].count > 0
+                        testVal = @aiController.queryDesirability @currentBoard, @createFallingBlock @pieces[idx]
+                        if testVal < minVal
+                            minVal = testVal
+                            @nextBlockIdx = idx
                 @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
             @fallingBlock = @nextBlock
             @uiBounds[@nextBlockIdx].count -= 1
@@ -135,10 +143,8 @@ class InverseTetris
             else if allLessThanTwo
                 bound.count += 2 for bound in @uiBounds
             @selectedShape = -1 if @selectedShape != -1 and @uiBounds[@selectedShape].count <= 0
-            @nextBlockIdx = if @selectedShape != -1 then @selectedShape else 0
-            while @uiBounds[@nextBlockIdx].count <= 0
-                @nextBlockIdx = (@nextBlockIdx + 1) % 7
-            @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
+            @nextBlockIdx = -1
+            @nextBlock = null
             @drawNextBlock()
             @drawUI()
             @tickLength = 175 # reset
@@ -286,6 +292,12 @@ class InverseTetris
         @drawingContext.fillStyle = "rgb(38,38,38)"
         @drawingContext.strokeStyle = "transparent"
         @drawingContext.fillRect @numberOfColumns * (@cellSize + 1) + 1, 0, @rightBuffer * (@cellSize + 1), @numberOfRows * (@cellSize + 1)
+        @drawScore()
+        if @nextBlock is null
+            @drawingContext.font = "#{@cellSize}px Arial"
+            @drawingContext.fillStyle = "white"
+            @drawingContext.fillText("???", (@numberOfColumns + 1.25) * (@cellSize + 1), 2.25 * (@cellSize + 1))
+            return
         cell = @createCell()
         cell.isFull = true
         cell.fillStyle = @nextBlock.fillStyle
@@ -294,7 +306,6 @@ class InverseTetris
             for shapeColumn in [0...shape[shapeRow].length]
                 if shape[shapeRow][shapeColumn] is 1
                     @drawCell cell, 1 + shapeRow, @numberOfColumns + 1 + shapeColumn
-        @drawScore() # testing...
         return
 
 
@@ -323,7 +334,7 @@ class InverseTetris
                         @drawCell cell, 2 * @numberOfRows + shapeRow + (if pIdx > 3 then 3 else 0), 1 + shapeColumn + 5 * (pIdx % 4), strokeCol
             @drawingContext.font = "#{@cellSize}px Arial"
             @drawingContext.fillStyle = "white"
-            @drawingContext.fillText(@uiBounds[pIdx].count, @uiBounds[pIdx].x, @uiBounds[pIdx].y - 1);
+            @drawingContext.fillText(@uiBounds[pIdx].count, @uiBounds[pIdx].x, @uiBounds[pIdx].y - 1)
         @cellSize = oldCellSize
         return
 
@@ -332,11 +343,11 @@ class InverseTetris
     drawScore: ->
         @drawingContext.font = "#{@cellSize}px Arial"
         @drawingContext.fillStyle = "white"
-        @drawingContext.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1));
+        @drawingContext.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1))
         if (@totalMoves > 0)
-            @drawingContext.fillText(Math.round(1000 * @score / @totalMoves), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1));
-        @drawingContext.fillText("Blocks", (@numberOfColumns + 0.5) * (@cellSize + 1), 7.4 * (@cellSize + 1));
-        @drawingContext.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1));
+            @drawingContext.fillText(Math.round(1000 * @score / @totalMoves), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1))
+        @drawingContext.fillText("Blocks", (@numberOfColumns + 0.5) * (@cellSize + 1), 7.4 * (@cellSize + 1))
+        @drawingContext.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1))
 
 
     # draw a (styled) cell

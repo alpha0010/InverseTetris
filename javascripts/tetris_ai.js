@@ -7,6 +7,14 @@
     function TetrisAI() {}
 
     TetrisAI.prototype.chooseMove = function(currentBoard, block) {
+      return this.calcMove(currentBoard, block)[0];
+    };
+
+    TetrisAI.prototype.queryDesirability = function(currentBoard, block) {
+      return this.calcMove(currentBoard, block)[1];
+    };
+
+    TetrisAI.prototype.calcMove = function(currentBoard, block) {
       var bestMove, minVal, oldGeom, tstBlck, tstBrd, tstVal;
       tstBrd = this.cloneBoard(currentBoard);
       tstBlck = this.cloneBlock(block);
@@ -43,7 +51,7 @@
           }
         }
       }
-      return bestMove;
+      return [bestMove, minVal];
     };
 
     TetrisAI.prototype.testRotateCCW = function(board, block) {
@@ -193,22 +201,30 @@
     };
 
     TetrisAI.prototype.evaluate = function(board) {
-      var column, pipeLen, pipeRow, row, score, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3;
+      var column, pipeLen, pipeRow, row, rowDepth, score, _i, _j, _k, _l, _m, _ref, _ref1, _ref2, _ref3, _ref4;
       score = 0;
       this.checkLines(board);
       for (row = _i = 0, _ref = board.length; 0 <= _ref ? _i < _ref : _i > _ref; row = 0 <= _ref ? ++_i : --_i) {
         for (column = _j = 0, _ref1 = board[row].length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; column = 0 <= _ref1 ? ++_j : --_j) {
           if (board[row][column]) {
             score += (board.length - row + 2) / 2 * this.calcColumnMultiplier(column, board[row].length);
+            if (row < board.length - 3) {
+              score += (board.length - row + 6) / 8;
+            }
           } else if (row > 0 && board[row - 1][column]) {
-            score += 10;
+            score += 14;
+            for (rowDepth = _k = row, _ref2 = board.length; row <= _ref2 ? _k < _ref2 : _k > _ref2; rowDepth = row <= _ref2 ? ++_k : --_k) {
+              if (!board[rowDepth][column]) {
+                score += 2;
+              }
+            }
           }
         }
       }
-      for (column = _k = 0, _ref2 = board[0].length; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; column = 0 <= _ref2 ? ++_k : --_k) {
+      for (column = _l = 0, _ref3 = board[0].length; 0 <= _ref3 ? _l < _ref3 : _l > _ref3; column = 0 <= _ref3 ? ++_l : --_l) {
         pipeLen = 0;
         pipeRow = -1;
-        for (row = _l = 0, _ref3 = board.length; 0 <= _ref3 ? _l < _ref3 : _l > _ref3; row = 0 <= _ref3 ? ++_l : --_l) {
+        for (row = _m = 0, _ref4 = board.length; 0 <= _ref4 ? _m < _ref4 : _m > _ref4; row = 0 <= _ref4 ? ++_m : --_m) {
           if (!board[row][column] && (column === 0 || board[row][column - 1]) && (column === board[0].length - 1 || board[row][column + 1])) {
             if (pipeRow === -1) {
               pipeRow = row;
@@ -217,7 +233,7 @@
           }
         }
         if (pipeLen > 1) {
-          score += pipeLen * (board.length - pipeRow + 2) / 4;
+          score += pipeLen * (board.length - pipeRow + 3) / 4;
         }
       }
       return score;
@@ -225,7 +241,7 @@
 
     TetrisAI.prototype.calcColumnMultiplier = function(column, len) {
       var val;
-      val = (column > len / 2 ? len - column - 1 : column) / len;
+      val = ((column > len / 2 ? len - column - 1 : column) + 2) / (len + 2);
       return (val + 2) / 2.0;
     };
 

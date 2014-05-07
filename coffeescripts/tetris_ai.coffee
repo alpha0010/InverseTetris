@@ -1,8 +1,17 @@
 # an AI module
 class TetrisAI
 
-    # AI entry point
     chooseMove: (currentBoard, block) ->
+        return @calcMove(currentBoard, block)[0]
+
+
+    # lower is better
+    queryDesirability: (currentBoard, block) ->
+        return @calcMove(currentBoard, block)[1]
+
+
+    # AI entry point
+    calcMove: (currentBoard, block) ->
         tstBrd = @cloneBoard currentBoard
         tstBlck = @cloneBlock block
         # move:
@@ -37,7 +46,7 @@ class TetrisAI
                 if tstVal < minVal
                     minVal = tstVal
                     bestMove = 4
-        return bestMove
+        return [bestMove, minVal]
 
 
     # return the best score possible if we choose to rotate CCW
@@ -171,8 +180,12 @@ class TetrisAI
             for column in [0...board[row].length]
                 if board[row][column]
                     score += (board.length - row + 2) / 2 * @calcColumnMultiplier(column, board[row].length)
+                    if row < board.length - 3 # not on bottom
+                        score += (board.length - row + 6) / 8
                 else if row > 0 and board[row - 1][column]
-                    score += 10   # 12
+                    score += 14
+                    for rowDepth in [row...board.length]
+                        score += 2 if not board[rowDepth][column]
         for column in [0...board[0].length]
             pipeLen = 0
             pipeRow = -1
@@ -181,13 +194,13 @@ class TetrisAI
                     pipeRow = row if pipeRow is -1
                     ++pipeLen
             if pipeLen > 1
-                score += pipeLen * (board.length - pipeRow + 2) / 4
+                score += pipeLen * (board.length - pipeRow + 3) / 4
         return score
 
 
     # helper: give better scores for items keeping the middle clear
     calcColumnMultiplier: (column, len) ->
-        val = (if column > len / 2 then len - column - 1 else column) / len
+        val = ((if column > len / 2 then len - column - 1 else column) + 2) / (len + 2)
         return (val + 2) / 2.0
 
 
