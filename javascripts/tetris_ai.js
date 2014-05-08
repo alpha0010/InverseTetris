@@ -4,13 +4,15 @@
 
   TetrisAI = (function() {
 
-    function TetrisAI() {}
-
     TetrisAI.prototype.pieces = null;
 
     TetrisAI.prototype.moveCache = null;
 
     TetrisAI.prototype.maxDepth = 0;
+
+    function TetrisAI(depth) {
+      this.maxDepth = depth;
+    }
 
     TetrisAI.prototype.initBlockChoices = function(blocks) {
       this.pieces = blocks;
@@ -188,8 +190,10 @@
               rowProduct += 1;
             }
           }
-          if (boardId.length > 0 || rowProduct > 0) {
+          if (boardId.length > 0) {
             boardId += "|" + rowProduct;
+          } else if (rowProduct > 0) {
+            boardId += rowProduct;
           }
         }
         if (this.moveCache.hasOwnProperty(boardId)) {

@@ -2,6 +2,7 @@
 <head>
     <title>Negate Tetris</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <script type="text/javascript" src="javascripts/settings_mgr.js"></script>
     <script type="text/javascript" src="javascripts/inverse_tetris.js"></script>
     <script type="text/javascript" src="javascripts/tetris_ai.js"></script>
     <style type="text/css">
@@ -18,7 +19,7 @@
 <body>
     <canvas id="gameBoard"></canvas>
     <script type="text/javascript">
-        var game = new InverseTetris(new TetrisAI());
+        var game = new SettingsMgr();
     </script>
 </body>
 </html>

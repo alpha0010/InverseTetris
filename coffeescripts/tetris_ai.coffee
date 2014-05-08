@@ -5,6 +5,10 @@ class TetrisAI
     maxDepth: 0
 
 
+    constructor: (depth) ->
+        @maxDepth = depth
+
+
     initBlockChoices: (blocks) ->
         @pieces = blocks
         @moveCache = {}
@@ -159,8 +163,10 @@ class TetrisAI
                 for item in row
                     rowProduct *= 2
                     rowProduct += 1 if item
-                if boardId.length > 0 or rowProduct > 0
+                if boardId.length > 0
                     boardId += "|" + rowProduct
+                else if rowProduct > 0
+                    boardId += rowProduct
             return @moveCache[boardId] if @moveCache.hasOwnProperty(boardId)
 
         score = Number.MIN_VALUE
