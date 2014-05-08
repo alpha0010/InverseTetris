@@ -2,23 +2,28 @@
 <head>
 	<title>Negate Tetris</title>
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<script type="text/javascript" src="js/settings_mgr.js"></script>
 	<script type="text/javascript" src="js/inverse_tetris.js"></script>
 	<script type="text/javascript" src="js/tetris_ai.js"></script>
 	<style type="text/css">
 		body {
 		  background-color: rgb(38, 38, 38);
 		}
-
 		canvas {
 		  margin: 2px auto 0 auto;
 		  display: block;
+		}
+		.center {
+		  margin: auto;
+		  width: 0;
 		}
 	</style>
 </head>
 <body>
 	<canvas id="gameBoard"></canvas>
 	<script type="text/javascript">
-		var game = new InverseTetris(new TetrisAI());
+		var game = new SettingsMgr();
 	</script>
+	<div class="center">v2014.5.8</div>
 </body>
 </html>
