@@ -45,6 +45,10 @@ class InverseTetris
         @rectBounds = canvas.getBoundingClientRect()
         canvas.addEventListener "mousemove", (e) => @onEvtMouseMove(e)
         canvas.addEventListener "mouseup", (e) => @onEvtMouseClick(e)
+        aiChoices = []
+        for piece in @pieces
+            aiChoices.push @createFallingBlock piece
+        aiModule.initBlockChoices aiChoices
         @aiController = aiModule
         @tick()
 
@@ -122,14 +126,19 @@ class InverseTetris
     # increment the game one 'tick' into the future
     tick: =>
         if @fallingBlock is null
-            if @nextBlock is null # let AI choose (user was too slow)
-                minVal = Number.MAX_VALUE
-                for idx in [0...@uiBounds.length]
-                    if @uiBounds[idx].count > 0
-                        testVal = @aiController.queryDesirability @currentBoard, @createFallingBlock @pieces[idx]
-                        if testVal < minVal
-                            minVal = testVal
-                            @nextBlockIdx = idx
+            if @nextBlock is null # user was too slow
+                if Math.random() < 0.7 # let the AI choose
+                    minVal = Number.MAX_VALUE
+                    for idx in [0...@uiBounds.length]
+                        if @uiBounds[idx].count > 0
+                            testVal = @aiController.queryDesirability @currentBoard, @createFallingBlock @pieces[idx]
+                            if testVal < minVal
+                                minVal = testVal
+                                @nextBlockIdx = idx
+                else # choose randomly
+                    @nextBlockIdx = Math.floor(Math.random() * 7)
+                    while @uiBounds[@nextBlockIdx].count == 0
+                        @nextBlockIdx = (@nextBlockIdx + 1) % 7
                 @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
             @fallingBlock = @nextBlock
             @uiBounds[@nextBlockIdx].count -= 1

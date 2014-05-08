@@ -52,7 +52,7 @@
 
       this.tick = __bind(this.tick, this);
 
-      var canvas, h, maxCellSize, w,
+      var aiChoices, canvas, h, maxCellSize, piece, w, _i, _len, _ref,
         _this = this;
       w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -81,6 +81,13 @@
       canvas.addEventListener("mouseup", function(e) {
         return _this.onEvtMouseClick(e);
       });
+      aiChoices = [];
+      _ref = this.pieces;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        piece = _ref[_i];
+        aiChoices.push(this.createFallingBlock(piece));
+      }
+      aiModule.initBlockChoices(aiChoices);
       this.aiController = aiModule;
       this.tick();
     }
@@ -139,14 +146,21 @@
       var allEqual, allLessThanTwo, bound, cell, idx, minVal, numFilledCells, row, testVal, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4;
       if (this.fallingBlock === null) {
         if (this.nextBlock === null) {
-          minVal = Number.MAX_VALUE;
-          for (idx = _i = 0, _ref = this.uiBounds.length; 0 <= _ref ? _i < _ref : _i > _ref; idx = 0 <= _ref ? ++_i : --_i) {
-            if (this.uiBounds[idx].count > 0) {
-              testVal = this.aiController.queryDesirability(this.currentBoard, this.createFallingBlock(this.pieces[idx]));
-              if (testVal < minVal) {
-                minVal = testVal;
-                this.nextBlockIdx = idx;
+          if (Math.random() < 0.7) {
+            minVal = Number.MAX_VALUE;
+            for (idx = _i = 0, _ref = this.uiBounds.length; 0 <= _ref ? _i < _ref : _i > _ref; idx = 0 <= _ref ? ++_i : --_i) {
+              if (this.uiBounds[idx].count > 0) {
+                testVal = this.aiController.queryDesirability(this.currentBoard, this.createFallingBlock(this.pieces[idx]));
+                if (testVal < minVal) {
+                  minVal = testVal;
+                  this.nextBlockIdx = idx;
+                }
               }
+            }
+          } else {
+            this.nextBlockIdx = Math.floor(Math.random() * 7);
+            while (this.uiBounds[this.nextBlockIdx].count === 0) {
+              this.nextBlockIdx = (this.nextBlockIdx + 1) % 7;
             }
           }
           this.nextBlock = this.createFallingBlock(this.pieces[this.nextBlockIdx]);

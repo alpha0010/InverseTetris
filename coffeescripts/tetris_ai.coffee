@@ -1,18 +1,26 @@
 # an AI module
 class TetrisAI
+    pieces: null
+    moveCache: null # pseudo hashmap/dictionary (depends on runtime)
+    maxDepth: 0
+
+
+    initBlockChoices: (blocks) ->
+        @pieces = blocks
+        @moveCache = {}
+
 
     chooseMove: (currentBoard, block) ->
-        return @calcMove(currentBoard, block)[0]
+        return @calcMove(@cloneBoard(currentBoard), block)[0]
 
 
     # lower is better
     queryDesirability: (currentBoard, block) ->
-        return @calcMove(currentBoard, block)[1]
+        return @calcMove(@cloneBoard(currentBoard), block, @maxDepth - 1)[1]
 
 
     # AI entry point
-    calcMove: (currentBoard, block) ->
-        tstBrd = @cloneBoard currentBoard
+    calcMove: (tstBrd, block, depth = 0) ->
         tstBlck = @cloneBlock block
         # move:
         #   0 - do nothing
@@ -20,28 +28,28 @@ class TetrisAI
         #   2 - move right
         #   3 - rotate CCW
         #   4 - rotate CW
-        minVal = @scoreMove tstBrd, tstBlck
+        minVal = @scoreMove tstBrd, tstBlck, depth
         bestMove = 0
-        tstVal = @testMoveLeft tstBrd, tstBlck
+        tstVal = @testMoveLeft tstBrd, tstBlck, depth
         if tstVal < minVal
             minVal = tstVal
             bestMove = 1
         tstBlck.column = block.column
-        tstVal = @testMoveRight tstBrd, tstBlck
+        tstVal = @testMoveRight tstBrd, tstBlck, depth
         if tstVal < minVal
             minVal = tstVal
             bestMove = 2
         if block.orientations > 1
-            tstVal = @testRotateCCW tstBrd, tstBlck
+            tstVal = @testRotateCCW tstBrd, tstBlck, depth
             if tstVal < minVal
                 minVal = tstVal
                 bestMove = 3
             if block.orientations > 2
-                tstVal = @testRotateCW tstBrd, tstBlck
+                tstVal = @testRotateCW tstBrd, tstBlck, depth
                 if tstVal < Number.MAX_VALUE
                     oldGeom = tstBlck.geometry
                     tstBlck.geometry = @rotateArray tstBlck.geometry
-                    tstVal = Math.min tstVal, @testRotateCW tstBrd, tstBlck
+                    tstVal = Math.min tstVal, @testRotateCW tstBrd, tstBlck, depth
                     tstBlck.geometry = oldGeom
                 if tstVal < minVal
                     minVal = tstVal
@@ -50,56 +58,56 @@ class TetrisAI
 
 
     # return the best score possible if we choose to rotate CCW
-    testRotateCCW: (board, block)->
+    testRotateCCW: (board, block, depth)->
         oldGeom = block.geometry
         oldCol = block.column
         minVal = Number.MAX_VALUE
         block.geometry = @rotateArray @rotateArray @rotateArray block.geometry
         if not @blockIntersects board, block, block.row, block.column
-            minVal = @scoreMove board, block
-            minVal = Math.min minVal, @testMoveRight board, block
+            minVal = @scoreMove board, block, depth
+            minVal = Math.min minVal, @testMoveRight board, block, depth
             block.column = oldCol
-            minVal = Math.min minVal, @testMoveLeft board, block
+            minVal = Math.min minVal, @testMoveLeft board, block, depth
         block.column = oldCol
         block.geometry = oldGeom
         return minVal
 
 
     # return the best score possible if we choose to rotate CW
-    testRotateCW: (board, block)->
+    testRotateCW: (board, block, depth)->
         oldGeom = block.geometry
         oldCol = block.column
         minVal = Number.MAX_VALUE
         block.geometry = @rotateArray block.geometry
         if not @blockIntersects board, block, block.row, block.column
-            minVal = @scoreMove board, block
-            minVal = Math.min minVal, @testMoveRight board, block
+            minVal = @scoreMove board, block, depth
+            minVal = Math.min minVal, @testMoveRight board, block, depth
             block.column = oldCol
-            minVal = Math.min minVal, @testMoveLeft board, block
+            minVal = Math.min minVal, @testMoveLeft board, block, depth
         block.column = oldCol
         block.geometry = oldGeom
         return minVal
 
 
     # return the best score possible if we choose to move left
-    testMoveLeft: (board, block)->
+    testMoveLeft: (board, block, depth)->
         minVal = Number.MAX_VALUE
         while block.column > 0
             block.column -= 1
             if @blockIntersects board, block, block.row, block.column
                 break
-            minVal = Math.min minVal, @scoreMove board, block
+            minVal = Math.min minVal, @scoreMove board, block, depth
         return minVal
 
 
     # return the best score possible if we choose to move right
-    testMoveRight: (board, block)->
+    testMoveRight: (board, block, depth)->
         minVal = Number.MAX_VALUE
         while block.column + block.geometry[0].length < board[0].length
             block.column += 1
             if @blockIntersects board, block, block.row, block.column
                 break
-            minVal = Math.min minVal, @scoreMove board, block
+            minVal = Math.min minVal, @scoreMove board, block, depth
         return minVal
 
 
@@ -127,7 +135,7 @@ class TetrisAI
     # deep copy the passed block
     cloneBlock: (block) ->
         out =
-            row: block.row
+            row: Math.max 0, block.row
             column: block.column
             geometry: null
         out.geometry = []
@@ -139,8 +147,28 @@ class TetrisAI
 
 
     # give a score for the passed configuration
-    scoreMove: (currentBoard, block) ->
-        return @evaluate @testDrop currentBoard, block
+    scoreMove: (currentBoard, block, depth) ->
+        if depth >= @maxDepth # max search depth
+            return @evaluate @testDrop currentBoard, block
+        nextBoard = @testDrop currentBoard, block
+
+        boardId = ""
+        if depth == 0
+            for row in nextBoard
+                rowProduct = 0
+                for item in row
+                    rowProduct *= 2
+                    rowProduct += 1 if item
+                if boardId.length > 0 or rowProduct > 0
+                    boardId += "|" + rowProduct
+            return @moveCache[boardId] if @moveCache.hasOwnProperty(boardId)
+
+        score = Number.MIN_VALUE
+        for piece in @pieces
+            score = Math.max score, @calcMove(nextBoard, piece, depth + 1)[1]
+        @moveCache[boardId] = score if depth == 0
+        return score
+
 
 
     # return a copy of the board with the block applied where it would fall
@@ -156,6 +184,7 @@ class TetrisAI
         for shapeRow in [0...block.geometry.length]
             for shapeColumn in [0...block.geometry[shapeRow].length]
                 out[shapeRow + block.row + delta][shapeColumn + block.column] or= block.geometry[shapeRow][shapeColumn]
+        @checkLines out
         return out
 
 
@@ -175,7 +204,6 @@ class TetrisAI
     # heuristic for scoring the board state, lower is better
     evaluate: (board) ->
         score = 0
-        @checkLines board
         for row in [0...board.length]
             for column in [0...board[row].length]
                 if board[row][column]
@@ -183,9 +211,12 @@ class TetrisAI
                     if row < board.length - 3 # not on bottom
                         score += (board.length - row + 6) / 8
                 else if row > 0 and board[row - 1][column]
-                    score += 14
+                    score += 18
                     for rowDepth in [row...board.length]
-                        score += 2 if not board[rowDepth][column]
+                        if not board[rowDepth][column]
+                            score += 1
+                        else
+                            break
         for column in [0...board[0].length]
             pipeLen = 0
             pipeRow = -1

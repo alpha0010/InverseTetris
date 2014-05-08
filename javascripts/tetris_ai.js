@@ -6,43 +6,56 @@
 
     function TetrisAI() {}
 
+    TetrisAI.prototype.pieces = null;
+
+    TetrisAI.prototype.moveCache = null;
+
+    TetrisAI.prototype.maxDepth = 0;
+
+    TetrisAI.prototype.initBlockChoices = function(blocks) {
+      this.pieces = blocks;
+      return this.moveCache = {};
+    };
+
     TetrisAI.prototype.chooseMove = function(currentBoard, block) {
-      return this.calcMove(currentBoard, block)[0];
+      return this.calcMove(this.cloneBoard(currentBoard), block)[0];
     };
 
     TetrisAI.prototype.queryDesirability = function(currentBoard, block) {
-      return this.calcMove(currentBoard, block)[1];
+      return this.calcMove(this.cloneBoard(currentBoard), block, this.maxDepth - 1)[1];
     };
 
-    TetrisAI.prototype.calcMove = function(currentBoard, block) {
-      var bestMove, minVal, oldGeom, tstBlck, tstBrd, tstVal;
-      tstBrd = this.cloneBoard(currentBoard);
+    TetrisAI.prototype.calcMove = function(tstBrd, block, depth) {
+      var bestMove, minVal, oldGeom, tstBlck, tstVal;
+      if (depth == null) {
+        depth = 0;
+      }
       tstBlck = this.cloneBlock(block);
-      minVal = this.scoreMove(tstBrd, tstBlck);
+      minVal = this.scoreMove(tstBrd, tstBlck, depth);
       bestMove = 0;
-      tstVal = this.testMoveLeft(tstBrd, tstBlck);
+      tstVal = this.testMoveLeft(tstBrd, tstBlck, depth);
       if (tstVal < minVal) {
         minVal = tstVal;
         bestMove = 1;
       }
       tstBlck.column = block.column;
-      tstVal = this.testMoveRight(tstBrd, tstBlck);
+      tstVal = this.testMoveRight(tstBrd, tstBlck, depth);
       if (tstVal < minVal) {
         minVal = tstVal;
         bestMove = 2;
       }
       if (block.orientations > 1) {
-        tstVal = this.testRotateCCW(tstBrd, tstBlck);
+        tstVal = this.testRotateCCW(tstBrd, tstBlck, depth);
         if (tstVal < minVal) {
           minVal = tstVal;
           bestMove = 3;
         }
         if (block.orientations > 2) {
-          tstVal = this.testRotateCW(tstBrd, tstBlck);
+          tstVal = this.testRotateCW(tstBrd, tstBlck, depth);
           if (tstVal < Number.MAX_VALUE) {
             oldGeom = tstBlck.geometry;
             tstBlck.geometry = this.rotateArray(tstBlck.geometry);
-            tstVal = Math.min(tstVal, this.testRotateCW(tstBrd, tstBlck));
+            tstVal = Math.min(tstVal, this.testRotateCW(tstBrd, tstBlck, depth));
             tstBlck.geometry = oldGeom;
           }
           if (tstVal < minVal) {
@@ -54,41 +67,41 @@
       return [bestMove, minVal];
     };
 
-    TetrisAI.prototype.testRotateCCW = function(board, block) {
+    TetrisAI.prototype.testRotateCCW = function(board, block, depth) {
       var minVal, oldCol, oldGeom;
       oldGeom = block.geometry;
       oldCol = block.column;
       minVal = Number.MAX_VALUE;
       block.geometry = this.rotateArray(this.rotateArray(this.rotateArray(block.geometry)));
       if (!this.blockIntersects(board, block, block.row, block.column)) {
-        minVal = this.scoreMove(board, block);
-        minVal = Math.min(minVal, this.testMoveRight(board, block));
+        minVal = this.scoreMove(board, block, depth);
+        minVal = Math.min(minVal, this.testMoveRight(board, block, depth));
         block.column = oldCol;
-        minVal = Math.min(minVal, this.testMoveLeft(board, block));
+        minVal = Math.min(minVal, this.testMoveLeft(board, block, depth));
       }
       block.column = oldCol;
       block.geometry = oldGeom;
       return minVal;
     };
 
-    TetrisAI.prototype.testRotateCW = function(board, block) {
+    TetrisAI.prototype.testRotateCW = function(board, block, depth) {
       var minVal, oldCol, oldGeom;
       oldGeom = block.geometry;
       oldCol = block.column;
       minVal = Number.MAX_VALUE;
       block.geometry = this.rotateArray(block.geometry);
       if (!this.blockIntersects(board, block, block.row, block.column)) {
-        minVal = this.scoreMove(board, block);
-        minVal = Math.min(minVal, this.testMoveRight(board, block));
+        minVal = this.scoreMove(board, block, depth);
+        minVal = Math.min(minVal, this.testMoveRight(board, block, depth));
         block.column = oldCol;
-        minVal = Math.min(minVal, this.testMoveLeft(board, block));
+        minVal = Math.min(minVal, this.testMoveLeft(board, block, depth));
       }
       block.column = oldCol;
       block.geometry = oldGeom;
       return minVal;
     };
 
-    TetrisAI.prototype.testMoveLeft = function(board, block) {
+    TetrisAI.prototype.testMoveLeft = function(board, block, depth) {
       var minVal;
       minVal = Number.MAX_VALUE;
       while (block.column > 0) {
@@ -96,12 +109,12 @@
         if (this.blockIntersects(board, block, block.row, block.column)) {
           break;
         }
-        minVal = Math.min(minVal, this.scoreMove(board, block));
+        minVal = Math.min(minVal, this.scoreMove(board, block, depth));
       }
       return minVal;
     };
 
-    TetrisAI.prototype.testMoveRight = function(board, block) {
+    TetrisAI.prototype.testMoveRight = function(board, block, depth) {
       var minVal;
       minVal = Number.MAX_VALUE;
       while (block.column + block.geometry[0].length < board[0].length) {
@@ -109,7 +122,7 @@
         if (this.blockIntersects(board, block, block.row, block.column)) {
           break;
         }
-        minVal = Math.min(minVal, this.scoreMove(board, block));
+        minVal = Math.min(minVal, this.scoreMove(board, block, depth));
       }
       return minVal;
     };
@@ -143,7 +156,7 @@
     TetrisAI.prototype.cloneBlock = function(block) {
       var column, out, row, _i, _j, _ref, _ref1;
       out = {
-        row: block.row,
+        row: Math.max(0, block.row),
         column: block.column,
         geometry: null
       };
@@ -157,8 +170,42 @@
       return out;
     };
 
-    TetrisAI.prototype.scoreMove = function(currentBoard, block) {
-      return this.evaluate(this.testDrop(currentBoard, block));
+    TetrisAI.prototype.scoreMove = function(currentBoard, block, depth) {
+      var boardId, item, nextBoard, piece, row, rowProduct, score, _i, _j, _k, _len, _len1, _len2, _ref;
+      if (depth >= this.maxDepth) {
+        return this.evaluate(this.testDrop(currentBoard, block));
+      }
+      nextBoard = this.testDrop(currentBoard, block);
+      boardId = "";
+      if (depth === 0) {
+        for (_i = 0, _len = nextBoard.length; _i < _len; _i++) {
+          row = nextBoard[_i];
+          rowProduct = 0;
+          for (_j = 0, _len1 = row.length; _j < _len1; _j++) {
+            item = row[_j];
+            rowProduct *= 2;
+            if (item) {
+              rowProduct += 1;
+            }
+          }
+          if (boardId.length > 0 || rowProduct > 0) {
+            boardId += "|" + rowProduct;
+          }
+        }
+        if (this.moveCache.hasOwnProperty(boardId)) {
+          return this.moveCache[boardId];
+        }
+      }
+      score = Number.MIN_VALUE;
+      _ref = this.pieces;
+      for (_k = 0, _len2 = _ref.length; _k < _len2; _k++) {
+        piece = _ref[_k];
+        score = Math.max(score, this.calcMove(nextBoard, piece, depth + 1)[1]);
+      }
+      if (depth === 0) {
+        this.moveCache[boardId] = score;
+      }
+      return score;
     };
 
     TetrisAI.prototype.testDrop = function(currentBoard, block) {
@@ -179,6 +226,7 @@
           (_base = out[shapeRow + block.row + delta])[_name = shapeColumn + block.column] || (_base[_name] = block.geometry[shapeRow][shapeColumn]);
         }
       }
+      this.checkLines(out);
       return out;
     };
 
@@ -203,7 +251,6 @@
     TetrisAI.prototype.evaluate = function(board) {
       var column, pipeLen, pipeRow, row, rowDepth, score, _i, _j, _k, _l, _m, _ref, _ref1, _ref2, _ref3, _ref4;
       score = 0;
-      this.checkLines(board);
       for (row = _i = 0, _ref = board.length; 0 <= _ref ? _i < _ref : _i > _ref; row = 0 <= _ref ? ++_i : --_i) {
         for (column = _j = 0, _ref1 = board[row].length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; column = 0 <= _ref1 ? ++_j : --_j) {
           if (board[row][column]) {
@@ -212,10 +259,12 @@
               score += (board.length - row + 6) / 8;
             }
           } else if (row > 0 && board[row - 1][column]) {
-            score += 14;
+            score += 18;
             for (rowDepth = _k = row, _ref2 = board.length; row <= _ref2 ? _k < _ref2 : _k > _ref2; rowDepth = row <= _ref2 ? ++_k : --_k) {
               if (!board[rowDepth][column]) {
-                score += 2;
+                score += 1;
+              } else {
+                break;
               }
             }
           }
