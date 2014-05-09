@@ -1,24 +1,24 @@
 # the game
 class InverseTetris
     currentBoard: null
-    cellSize: 25
-    numberOfRows: 20
+    cellSize:        25
+    numberOfRows:    20
     numberOfColumns: 10
-    rightBuffer: 5  # extra columns
-    bottemBuffer: 4 # extra rows
-    tickLength: 175
-    aiTickLength: 15
+    rightBuffer:      5 # extra columns
+    bottemBuffer:     4 # extra rows
+    tickLength:     175
+    aiTickLength:    15
     drawingContext: null
-    pieces: null
-    fallingBlock: null
-    nextBlock: null # the next block to come
-    nextBlockIdx: null
-    aiController: null
-    score: 0
+    pieces:         null
+    fallingBlock:   null
+    nextBlock:      null # the next block to come
+    nextBlockIdx:   null
+    aiController:   null
+    score:      0
     totalMoves: 0
-    rectBounds: null
+    rectBounds:    null
     selectedShape: -1
-    uiBounds: null
+    uiBounds:      null
 
 
     # set up the starting state
@@ -44,7 +44,8 @@ class InverseTetris
         @initUIBounds()
         @rectBounds = canvas.getBoundingClientRect()
         canvas.addEventListener "mousemove", (e) => @onEvtMouseMove(e)
-        canvas.addEventListener "mouseup", (e) => @onEvtMouseClick(e)
+        canvas.addEventListener "mouseup",   (e) => @onEvtMouseClick(e)
+        window.addEventListener "keypress",  (e) => @onEvtKeyPress(e)
         aiChoices = []
         for piece in @pieces
             aiChoices.push @createFallingBlock piece
@@ -84,6 +85,7 @@ class InverseTetris
               [1, 1, 0],
               [0, 1, 1] ]
         ]
+        @pieces.ids = "ijlostz"
 
 
     # init the starting board
@@ -223,6 +225,21 @@ class InverseTetris
         return
 
 
+    onEvtKeyPress: (evt) =>
+        evtKey = null
+        if evt.which == null
+            evtKey = String.fromCharCode evt.keyCode
+        else if evt.which != 0 and evt.charCode != 0
+            evtKey = String.fromCharCode evt.which
+        if evtKey != null
+            shapeIdx = @pieces.ids.search evtKey
+            if shapeIdx != -1 and @uiBounds[shapeIdx].count > 0 and shapeIdx != @nextBlockIdx
+                @nextBlock = @createFallingBlock @pieces[shapeIdx]
+                @nextBlockIdx = shapeIdx
+                @drawNextBlock()
+        return
+
+
     # test if the current falling block would intersect part of the board
     blockIntersects: (row, column) ->
         for shapeRow in [0...@fallingBlock.geometry.length]
@@ -344,8 +361,10 @@ class InverseTetris
             @drawingContext.font = "#{@cellSize}px Arial"
             @drawingContext.fillStyle = "white"
             @drawingContext.fillText(@uiBounds[pIdx].count, @uiBounds[pIdx].x, @uiBounds[pIdx].y - 1)
+            @drawingContext.font = "#{@cellSize*0.9}px Arial"
+            @drawingContext.fillStyle = "grey"
+            @drawingContext.fillText("(#{@pieces.ids[pIdx].toUpperCase()})", @uiBounds[pIdx].x + @cellSize, @uiBounds[pIdx].y - @cellSize / 5)
         @cellSize = oldCellSize
-        return
 
 
     # display the current score

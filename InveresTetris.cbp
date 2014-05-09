@@ -12,9 +12,11 @@
 			</Target>
 		</Build>
 		<Unit filename="coffeescripts/inverse_tetris.coffee" />
+		<Unit filename="coffeescripts/settings_mgr.coffee" />
 		<Unit filename="coffeescripts/tetris_ai.coffee" />
 		<Unit filename="index.html" />
 		<Unit filename="javascripts/inverse_tetris.js" />
+		<Unit filename="javascripts/settings_mgr.js" />
 		<Unit filename="javascripts/tetris_ai.js" />
 		<Extensions>
 			<code_completion />

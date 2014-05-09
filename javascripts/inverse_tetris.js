@@ -44,6 +44,8 @@
     InverseTetris.prototype.uiBounds = null;
 
     function InverseTetris(aiModule) {
+      this.onEvtKeyPress = __bind(this.onEvtKeyPress, this);
+
       this.onEvtMouseClick = __bind(this.onEvtMouseClick, this);
 
       this.onEvtMouseMove = __bind(this.onEvtMouseMove, this);
@@ -81,6 +83,9 @@
       canvas.addEventListener("mouseup", function(e) {
         return _this.onEvtMouseClick(e);
       });
+      window.addEventListener("keypress", function(e) {
+        return _this.onEvtKeyPress(e);
+      });
       aiChoices = [];
       _ref = this.pieces;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -93,7 +98,8 @@
     }
 
     InverseTetris.prototype.initPieces = function() {
-      return this.pieces = [[[0, 255, 255], 2, [1, 1, 1, 1]], [[0, 0, 255], 4, [1, 1, 1], [0, 0, 1]], [[255, 165, 0], 4, [1, 1, 1], [1, 0, 0]], [[255, 255, 0], 1, [1, 1], [1, 1]], [[128, 255, 0], 2, [0, 1, 1], [1, 1, 0]], [[128, 0, 128], 4, [1, 1, 1], [0, 1, 0]], [[255, 0, 255], 2, [1, 1, 0], [0, 1, 1]]];
+      this.pieces = [[[0, 255, 255], 2, [1, 1, 1, 1]], [[0, 0, 255], 4, [1, 1, 1], [0, 0, 1]], [[255, 165, 0], 4, [1, 1, 1], [1, 0, 0]], [[255, 255, 0], 1, [1, 1], [1, 1]], [[128, 255, 0], 2, [0, 1, 1], [1, 1, 0]], [[128, 0, 128], 4, [1, 1, 1], [0, 1, 0]], [[255, 0, 255], 2, [1, 1, 0], [0, 1, 1]]];
+      return this.pieces.ids = "ijlostz";
     };
 
     InverseTetris.prototype.initBoard = function() {
@@ -286,6 +292,24 @@
       }
     };
 
+    InverseTetris.prototype.onEvtKeyPress = function(evt) {
+      var evtKey, shapeIdx;
+      evtKey = null;
+      if (evt.which === null) {
+        evtKey = String.fromCharCode(evt.keyCode);
+      } else if (evt.which !== 0 && evt.charCode !== 0) {
+        evtKey = String.fromCharCode(evt.which);
+      }
+      if (evtKey !== null) {
+        shapeIdx = this.pieces.ids.search(evtKey);
+        if (shapeIdx !== -1 && this.uiBounds[shapeIdx].count > 0 && shapeIdx !== this.nextBlockIdx) {
+          this.nextBlock = this.createFallingBlock(this.pieces[shapeIdx]);
+          this.nextBlockIdx = shapeIdx;
+          this.drawNextBlock();
+        }
+      }
+    };
+
     InverseTetris.prototype.blockIntersects = function(row, column) {
       var shapeColumn, shapeRow, _i, _j, _ref, _ref1;
       for (shapeRow = _i = 0, _ref = this.fallingBlock.geometry.length; 0 <= _ref ? _i < _ref : _i > _ref; shapeRow = 0 <= _ref ? ++_i : --_i) {
@@ -436,8 +460,11 @@
         this.drawingContext.font = "" + this.cellSize + "px Arial";
         this.drawingContext.fillStyle = "white";
         this.drawingContext.fillText(this.uiBounds[pIdx].count, this.uiBounds[pIdx].x, this.uiBounds[pIdx].y - 1);
+        this.drawingContext.font = "" + (this.cellSize * 0.9) + "px Arial";
+        this.drawingContext.fillStyle = "grey";
+        this.drawingContext.fillText("(" + (this.pieces.ids[pIdx].toUpperCase()) + ")", this.uiBounds[pIdx].x + this.cellSize, this.uiBounds[pIdx].y - this.cellSize / 5);
       }
-      this.cellSize = oldCellSize;
+      return this.cellSize = oldCellSize;
     };
 
     InverseTetris.prototype.drawScore = function() {

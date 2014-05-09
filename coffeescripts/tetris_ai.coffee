@@ -1,8 +1,8 @@
 # an AI module
 class TetrisAI
-    pieces: null
+    pieces:    null
     moveCache: null # pseudo hashmap/dictionary (depends on runtime)
-    maxDepth: 0
+    maxDepth:  0
 
 
     constructor: (depth) ->

@@ -1,7 +1,7 @@
 class SettingsMgr
-    selectIdx: -1
-    dc: null
-    game: null
+    selectIdx:  -1
+    dc:         null
+    game:       null
     rectBounds: null
 
 
