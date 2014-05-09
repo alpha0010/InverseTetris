@@ -225,6 +225,7 @@ class InverseTetris
         return
 
 
+    # update the next queued block
     onEvtKeyPress: (evt) =>
         evtKey = null
         if evt.which == null

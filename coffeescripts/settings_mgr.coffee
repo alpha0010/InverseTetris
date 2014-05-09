@@ -1,3 +1,4 @@
+# display welcome options and init game
 class SettingsMgr
     selectIdx:  -1
     dc:         null
@@ -5,6 +6,7 @@ class SettingsMgr
     rectBounds: null
 
 
+    # set up canvas
     constructor: ->
         canvas = document.getElementById "gameBoard"
         canvas.width  = 200
@@ -28,6 +30,7 @@ class SettingsMgr
         canvas.addEventListener "mouseup",   mouseClickHandler
 
 
+    # update box outlines
     drawSelection: ->
         regular   = "white"
         highlight = "red"
@@ -39,6 +42,7 @@ class SettingsMgr
         @dc.strokeRect 4, 68, 120, 26
 
 
+    # update the selection
     onEvtMouseMove: (evt) =>
         xPos = evt.clientX - @rectBounds.left
         yPos = evt.clientY - @rectBounds.top
@@ -56,10 +60,12 @@ class SettingsMgr
         return
 
 
+    # init the game
     onEvtMouseClick: (evt) =>
         if @selectIdx != -1
             @game = new InverseTetris new TetrisAI @selectIdx
         return
 
 
+# make this class available in global scope
 window.SettingsMgr = SettingsMgr

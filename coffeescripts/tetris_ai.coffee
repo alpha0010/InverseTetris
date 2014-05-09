@@ -5,15 +5,18 @@ class TetrisAI
     maxDepth:  0
 
 
+    # set personality variant
     constructor: (depth) ->
         @maxDepth = depth
 
 
+    # receive the list of possible blocks
     initBlockChoices: (blocks) ->
         @pieces = blocks
         @moveCache = {}
 
 
+    # return an action based on the passed game state
     chooseMove: (currentBoard, block) ->
         return @calcMove(@cloneBoard(currentBoard), block)[0]
 
@@ -212,18 +215,19 @@ class TetrisAI
         score = 0
         for row in [0...board.length]
             for column in [0...board[row].length]
-                if board[row][column]
+                if board[row][column]                      # cell is filled
                     score += (board.length - row + 2) / 2 * @calcColumnMultiplier(column, board[row].length)
-                    if row < board.length - 3 # not on bottom
+                    if row < board.length - 3              # not on bottom
                         score += (board.length - row + 6) / 8
-                else if row > 0 and board[row - 1][column]
+                else if row > 0 and board[row - 1][column] # trapped empty space
                     score += 18
-                    for rowDepth in [row...board.length]
+                    for rowDepth in [row...board.length]   # trapped empty space depth
                         if not board[rowDepth][column]
                             score += 1
                         else
                             break
         for column in [0...board[0].length]
+            # a "pipe" is a vertical gap, width 1
             pipeLen = 0
             pipeRow = -1
             for row in [0...board.length]
