@@ -14,6 +14,17 @@ class TetrisAI
     initBlockChoices: (blocks) ->
         @pieces = blocks
         @moveCache = {}
+        if @maxDepth == 0 # easy mode
+            @evaluate = (board) ->
+                score = 0
+                for row in [0...board.length]
+                    for column in [0...board[row].length]
+                        if board[row][column]
+                            score += board.length - row + 4 + 2 * Math.random()
+                return score
+            @maxDepth = 1
+        else
+            @maxDepth -= 1
 
 
     # return an action based on the passed game state

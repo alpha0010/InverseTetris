@@ -16,7 +16,24 @@
 
     TetrisAI.prototype.initBlockChoices = function(blocks) {
       this.pieces = blocks;
-      return this.moveCache = {};
+      this.moveCache = {};
+      if (this.maxDepth === 0) {
+        this.evaluate = function(board) {
+          var column, row, score, _i, _j, _ref, _ref1;
+          score = 0;
+          for (row = _i = 0, _ref = board.length; 0 <= _ref ? _i < _ref : _i > _ref; row = 0 <= _ref ? ++_i : --_i) {
+            for (column = _j = 0, _ref1 = board[row].length; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; column = 0 <= _ref1 ? ++_j : --_j) {
+              if (board[row][column]) {
+                score += board.length - row + 4 + 2 * Math.random();
+              }
+            }
+          }
+          return score;
+        };
+        return this.maxDepth = 1;
+      } else {
+        return this.maxDepth -= 1;
+      }
     };
 
     TetrisAI.prototype.chooseMove = function(currentBoard, block) {
