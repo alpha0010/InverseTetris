@@ -60,7 +60,7 @@
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
       maxCellSize = Math.min((w - 20) / (this.numberOfColumns + this.rightBuffer) - 1, (h - 20) / (this.numberOfRows + this.bottemBuffer) - 1);
       if (maxCellSize > this.cellSize) {
-        this.cellSize = Math.floor((maxCellSize + this.cellSize) / 2);
+        this.cellSize = Math.floor((7 * maxCellSize + this.cellSize) / 8);
       } else {
         this.cellSize = Math.floor(maxCellSize);
       }
@@ -81,6 +81,7 @@
         return _this.onEvtMouseMove(e);
       });
       canvas.addEventListener("mouseup", function(e) {
+        _this.onEvtMouseMove(e);
         return _this.onEvtMouseClick(e);
       });
       window.addEventListener("keypress", function(e) {

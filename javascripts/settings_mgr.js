@@ -13,21 +13,26 @@
 
     SettingsMgr.prototype.rectBounds = null;
 
+    SettingsMgr.prototype.scale = 1;
+
     function SettingsMgr() {
       this.onEvtMouseMove = __bind(this.onEvtMouseMove, this);
 
-      var canvas, doStart, drawingContext, keyPressHandler, mouseClickHandler, mouseMoveHandler,
+      var canvas, doStart, drawingContext, h, keyPressHandler, mouseClickHandler, mouseMoveHandler, w,
         _this = this;
+      w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+      h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+      this.scale = Math.floor(Math.min(h, w) / 300);
       canvas = document.getElementById("gameBoard");
-      canvas.width = 200;
-      canvas.height = 130;
+      canvas.width = 130 * this.scale;
+      canvas.height = 130 * this.scale;
       drawingContext = canvas.getContext("2d");
-      drawingContext.font = "24px Arial";
+      drawingContext.font = "" + (24 * this.scale) + "px Arial";
       drawingContext.fillStyle = "white";
-      drawingContext.fillText("Easy", 8, 26);
-      drawingContext.fillText("Normal", 8, 58);
-      drawingContext.fillText("Abnormal", 8, 90);
-      drawingContext.fillText("TetrChess", 8, 122);
+      drawingContext.fillText("Easy", 8 * this.scale, 26 * this.scale);
+      drawingContext.fillText("Normal", 8 * this.scale, 58 * this.scale);
+      drawingContext.fillText("Abnormal", 8 * this.scale, 90 * this.scale);
+      drawingContext.fillText("TetrChess", 8 * this.scale, 122 * this.scale);
       this.dc = drawingContext;
       this.drawSelection();
       this.rectBounds = canvas.getBoundingClientRect();
@@ -43,6 +48,7 @@
         return _this.onEvtMouseMove(e);
       };
       mouseClickHandler = function(e) {
+        _this.onEvtMouseMove(e);
         return doStart(_this.selectIdx);
       };
       keyPressHandler = function(e) {
@@ -70,13 +76,13 @@
       regular = "white";
       highlight = "red";
       this.dc.strokeStyle = this.selectIdx === 0 ? highlight : regular;
-      this.dc.strokeRect(4, 4, 120, 26);
+      this.dc.strokeRect(4 * this.scale, 4 * this.scale, 120 * this.scale, 26 * this.scale);
       this.dc.strokeStyle = this.selectIdx === 1 ? highlight : regular;
-      this.dc.strokeRect(4, 36, 120, 26);
+      this.dc.strokeRect(4 * this.scale, 36 * this.scale, 120 * this.scale, 26 * this.scale);
       this.dc.strokeStyle = this.selectIdx === 2 ? highlight : regular;
-      this.dc.strokeRect(4, 68, 120, 26);
+      this.dc.strokeRect(4 * this.scale, 68 * this.scale, 120 * this.scale, 26 * this.scale);
       this.dc.strokeStyle = this.selectIdx === 3 ? highlight : regular;
-      return this.dc.strokeRect(4, 100, 120, 26);
+      return this.dc.strokeRect(4 * this.scale, 100 * this.scale, 120 * this.scale, 26 * this.scale);
     };
 
     SettingsMgr.prototype.onEvtMouseMove = function(evt) {
@@ -84,14 +90,14 @@
       xPos = evt.clientX - this.rectBounds.left;
       yPos = evt.clientY - this.rectBounds.top;
       idx = -1;
-      if (xPos > 4 && xPos < 124) {
-        if (yPos > 4 && yPos < 30) {
+      if (xPos > 4 * this.scale && xPos < 124 * this.scale) {
+        if (yPos > 4 * this.scale && yPos < 30 * this.scale) {
           idx = 0;
-        } else if (yPos > 36 && yPos < 62) {
+        } else if (yPos > 36 * this.scale && yPos < 62 * this.scale) {
           idx = 1;
-        } else if (yPos > 68 && yPos < 94) {
+        } else if (yPos > 68 * this.scale && yPos < 94 * this.scale) {
           idx = 2;
-        } else if (yPos > 100 && yPos < 126) {
+        } else if (yPos > 100 * this.scale && yPos < 126 * this.scale) {
           idx = 3;
         }
       }

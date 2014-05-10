@@ -4,20 +4,24 @@ class SettingsMgr
     dc:         null
     game:       null
     rectBounds: null
+    scale:      1
 
 
     # set up canvas
     constructor: ->
+        w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
+        h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+        @scale = Math.floor(Math.min(h, w) / 300)
         canvas = document.getElementById "gameBoard"
-        canvas.width  = 200
-        canvas.height = 130
+        canvas.width  = 130 * @scale
+        canvas.height = 130 * @scale
         drawingContext = canvas.getContext "2d"
-        drawingContext.font = "24px Arial"
+        drawingContext.font = "#{24*@scale}px Arial"
         drawingContext.fillStyle = "white"
-        drawingContext.fillText "Easy",      8,  26
-        drawingContext.fillText "Normal",    8,  58
-        drawingContext.fillText "Abnormal",  8,  90
-        drawingContext.fillText "TetrChess", 8, 122
+        drawingContext.fillText "Easy",      8 * @scale,  26 * @scale
+        drawingContext.fillText "Normal",    8 * @scale,  58 * @scale
+        drawingContext.fillText "Abnormal",  8 * @scale,  90 * @scale
+        drawingContext.fillText "TetrChess", 8 * @scale, 122 * @scale
         @dc = drawingContext
         @drawSelection()
         @rectBounds = canvas.getBoundingClientRect()
@@ -28,7 +32,9 @@ class SettingsMgr
                 window.removeEventListener "keypress",  keyPressHandler
                 @game = new InverseTetris new TetrisAI variant
         mouseMoveHandler  = (e) => @onEvtMouseMove e
-        mouseClickHandler = (e) => doStart @selectIdx
+        mouseClickHandler = (e) =>
+            @onEvtMouseMove e
+            doStart @selectIdx
         keyPressHandler   = (e) =>
             evtKey = null
             if e.which == null
@@ -49,13 +55,13 @@ class SettingsMgr
         regular   = "white"
         highlight = "red"
         @dc.strokeStyle = if @selectIdx == 0 then highlight else regular
-        @dc.strokeRect 4,   4, 120, 26
+        @dc.strokeRect 4 * @scale,   4 * @scale, 120 * @scale, 26 * @scale
         @dc.strokeStyle = if @selectIdx == 1 then highlight else regular
-        @dc.strokeRect 4,  36, 120, 26
+        @dc.strokeRect 4 * @scale,  36 * @scale, 120 * @scale, 26 * @scale
         @dc.strokeStyle = if @selectIdx == 2 then highlight else regular
-        @dc.strokeRect 4,  68, 120, 26
+        @dc.strokeRect 4 * @scale,  68 * @scale, 120 * @scale, 26 * @scale
         @dc.strokeStyle = if @selectIdx == 3 then highlight else regular
-        @dc.strokeRect 4, 100, 120, 26
+        @dc.strokeRect 4 * @scale, 100 * @scale, 120 * @scale, 26 * @scale
 
 
     # update the selection
@@ -63,14 +69,14 @@ class SettingsMgr
         xPos = evt.clientX - @rectBounds.left
         yPos = evt.clientY - @rectBounds.top
         idx = -1
-        if xPos > 4 and xPos < 124
-            if yPos > 4 and yPos < 30
+        if xPos > 4 * @scale and xPos < 124 * @scale
+            if yPos > 4 * @scale and yPos < 30 * @scale
                 idx = 0
-            else if yPos > 36 and yPos < 62
+            else if yPos > 36 * @scale and yPos < 62 * @scale
                 idx = 1
-            else if yPos > 68 and yPos < 94
+            else if yPos > 68 * @scale and yPos < 94 * @scale
                 idx = 2
-            else if yPos > 100 and yPos < 126
+            else if yPos > 100 * @scale and yPos < 126 * @scale
                 idx = 3
         if @selectIdx != idx
             @selectIdx = idx

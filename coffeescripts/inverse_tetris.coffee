@@ -27,7 +27,7 @@ class InverseTetris
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
         maxCellSize = Math.min((w - 20) / (@numberOfColumns + @rightBuffer) - 1, (h - 20) / (@numberOfRows + @bottemBuffer) - 1)
         if (maxCellSize > @cellSize)
-            @cellSize = Math.floor((maxCellSize + @cellSize) / 2)
+            @cellSize = Math.floor((7 * maxCellSize + @cellSize) / 8)
         else
             @cellSize = Math.floor(maxCellSize)
         canvas = document.getElementById "gameBoard"
@@ -43,9 +43,11 @@ class InverseTetris
         @nextBlock = @createFallingBlock @pieces[@nextBlockIdx]
         @initUIBounds()
         @rectBounds = canvas.getBoundingClientRect()
-        canvas.addEventListener "mousemove", (e) => @onEvtMouseMove(e)
-        canvas.addEventListener "mouseup",   (e) => @onEvtMouseClick(e)
-        window.addEventListener "keypress",  (e) => @onEvtKeyPress(e)
+        canvas.addEventListener "mousemove", (e) => @onEvtMouseMove e
+        canvas.addEventListener "mouseup",   (e) =>
+            @onEvtMouseMove e
+            @onEvtMouseClick e
+        window.addEventListener "keypress",  (e) => @onEvtKeyPress e
         aiChoices = []
         for piece in @pieces
             aiChoices.push @createFallingBlock piece
