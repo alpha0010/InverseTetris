@@ -21,7 +21,7 @@
 
     InverseTetris.prototype.aiTickLength = 15;
 
-    InverseTetris.prototype.drawingContext = null;
+    InverseTetris.prototype.dc = null;
 
     InverseTetris.prototype.pieces = null;
 
@@ -67,10 +67,10 @@
       canvas = document.getElementById("gameBoard");
       canvas.width = (this.cellSize + 1) * (this.numberOfColumns + this.rightBuffer) + 1;
       canvas.height = (this.cellSize + 1) * (this.numberOfRows + this.bottemBuffer) + 1;
-      this.drawingContext = canvas.getContext("2d");
-      this.drawingContext.fillStyle = "rgb(38,38,38)";
-      this.drawingContext.strokeStyle = "transparent";
-      this.drawingContext.fillRect(0, 0, canvas.width, canvas.height);
+      this.dc = canvas.getContext("2d");
+      this.dc.fillStyle = "rgb(38,38,38)";
+      this.dc.strokeStyle = "transparent";
+      this.dc.fillRect(0, 0, canvas.width, canvas.height);
       this.initPieces();
       this.initBoard();
       this.nextBlockIdx = Math.floor(Math.random() * 7);
@@ -407,14 +407,14 @@
 
     InverseTetris.prototype.drawNextBlock = function() {
       var cell, shape, shapeColumn, shapeRow, _i, _j, _ref, _ref1;
-      this.drawingContext.fillStyle = "rgb(38,38,38)";
-      this.drawingContext.strokeStyle = "transparent";
-      this.drawingContext.fillRect(this.numberOfColumns * (this.cellSize + 1) + 1, 0, this.rightBuffer * (this.cellSize + 1), this.numberOfRows * (this.cellSize + 1));
+      this.dc.fillStyle = "rgb(38,38,38)";
+      this.dc.strokeStyle = "transparent";
+      this.dc.fillRect(this.numberOfColumns * (this.cellSize + 1) + 1, 0, this.rightBuffer * (this.cellSize + 1), this.numberOfRows * (this.cellSize + 1));
       this.drawScore();
       if (this.nextBlock === null) {
-        this.drawingContext.font = "" + this.cellSize + "px Arial";
-        this.drawingContext.fillStyle = "white";
-        this.drawingContext.fillText("???", (this.numberOfColumns + 1.25) * (this.cellSize + 1), 2.25 * (this.cellSize + 1));
+        this.dc.font = "" + this.cellSize + "px Arial";
+        this.dc.fillStyle = "white";
+        this.dc.fillText("???", (this.numberOfColumns + 1.25) * (this.cellSize + 1), 2.25 * (this.cellSize + 1));
         return;
       }
       cell = this.createCell();
@@ -432,9 +432,9 @@
 
     InverseTetris.prototype.drawUI = function() {
       var block, cell, oldCellSize, pIdx, shape, shapeColumn, shapeRow, strokeCol, _i, _j, _k, _ref, _ref1, _ref2;
-      this.drawingContext.fillStyle = "rgb(38,38,38)";
-      this.drawingContext.strokeStyle = "transparent";
-      this.drawingContext.fillRect(0, this.numberOfRows * (this.cellSize + 1) + 1, this.numberOfColumns * (this.cellSize + 1), this.bottemBuffer * (this.cellSize + 1));
+      this.dc.fillStyle = "rgb(38,38,38)";
+      this.dc.strokeStyle = "transparent";
+      this.dc.fillRect(0, this.numberOfRows * (this.cellSize + 1) + 1, this.numberOfColumns * (this.cellSize + 1), this.bottemBuffer * (this.cellSize + 1));
       oldCellSize = this.cellSize;
       this.cellSize /= 2;
       for (pIdx = _i = 0, _ref = this.pieces.length; 0 <= _ref ? _i < _ref : _i > _ref; pIdx = 0 <= _ref ? ++_i : --_i) {
@@ -458,25 +458,25 @@
             }
           }
         }
-        this.drawingContext.font = "" + this.cellSize + "px Arial";
-        this.drawingContext.fillStyle = "white";
-        this.drawingContext.fillText(this.uiBounds[pIdx].count, this.uiBounds[pIdx].x, this.uiBounds[pIdx].y - 1);
-        this.drawingContext.font = "" + (this.cellSize * 0.9) + "px Arial";
-        this.drawingContext.fillStyle = "grey";
-        this.drawingContext.fillText("(" + (this.pieces.ids[pIdx].toUpperCase()) + ")", this.uiBounds[pIdx].x + this.cellSize, this.uiBounds[pIdx].y - this.cellSize / 5);
+        this.dc.font = "" + this.cellSize + "px Arial";
+        this.dc.fillStyle = "white";
+        this.dc.fillText(this.uiBounds[pIdx].count, this.uiBounds[pIdx].x, this.uiBounds[pIdx].y - 1);
+        this.dc.font = "" + (this.cellSize * 0.9) + "px Arial";
+        this.dc.fillStyle = "grey";
+        this.dc.fillText("(" + (this.pieces.ids[pIdx].toUpperCase()) + ")", this.uiBounds[pIdx].x + this.cellSize, this.uiBounds[pIdx].y - this.cellSize / 5);
       }
       return this.cellSize = oldCellSize;
     };
 
     InverseTetris.prototype.drawScore = function() {
-      this.drawingContext.font = "" + this.cellSize + "px Arial";
-      this.drawingContext.fillStyle = "white";
-      this.drawingContext.fillText("Score", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 5 * (this.cellSize + 1));
+      this.dc.font = "" + this.cellSize + "px Arial";
+      this.dc.fillStyle = "white";
+      this.dc.fillText("Score", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 5 * (this.cellSize + 1));
       if (this.totalMoves > 0) {
-        this.drawingContext.fillText(Math.round(1000 * this.score / this.totalMoves), (this.numberOfColumns + 0.5) * (this.cellSize + 1), 6 * (this.cellSize + 1));
+        this.dc.fillText(Math.round(1000 * this.score / this.totalMoves), (this.numberOfColumns + 0.5) * (this.cellSize + 1), 6 * (this.cellSize + 1));
       }
-      this.drawingContext.fillText("Blocks", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 7.4 * (this.cellSize + 1));
-      return this.drawingContext.fillText(this.totalMoves, (this.numberOfColumns + 0.5) * (this.cellSize + 1), 8.4 * (this.cellSize + 1));
+      this.dc.fillText("Blocks", (this.numberOfColumns + 0.5) * (this.cellSize + 1), 7.4 * (this.cellSize + 1));
+      return this.dc.fillText(this.totalMoves, (this.numberOfColumns + 0.5) * (this.cellSize + 1), 8.4 * (this.cellSize + 1));
     };
 
     InverseTetris.prototype.drawCell = function(cell, row, column, strokeCol) {
@@ -488,82 +488,82 @@
       y = row * (this.cellSize + 1) + 1;
       backgroundCol = "rgb(38,38,38)";
       fillStyle = cell.isFull ? cell.fillStyle : backgroundCol;
-      this.drawingContext.strokeStyle = strokeCol;
-      this.drawingContext.strokeRect(x, y, this.cellSize, this.cellSize);
-      this.drawingContext.fillStyle = fillStyle;
-      this.drawingContext.fillRect(x, y, this.cellSize, this.cellSize);
+      this.dc.strokeStyle = strokeCol;
+      this.dc.strokeRect(x, y, this.cellSize, this.cellSize);
+      this.dc.fillStyle = fillStyle;
+      this.dc.fillRect(x, y, this.cellSize, this.cellSize);
       if (cell.isFull) {
         bevelRad = this.cellSize / 4;
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x, y + this.cellSize);
-        this.drawingContext.lineTo(x + this.cellSize, y + this.cellSize);
-        this.drawingContext.lineTo(x + this.cellSize - bevelRad, y + this.cellSize - bevelRad);
-        this.drawingContext.lineTo(x + bevelRad, y + this.cellSize - bevelRad);
-        this.drawingContext.closePath();
-        gradient = this.drawingContext.createLinearGradient(x, y + this.cellSize - bevelRad, x, y + this.cellSize);
+        this.dc.beginPath();
+        this.dc.moveTo(x, y + this.cellSize);
+        this.dc.lineTo(x + this.cellSize, y + this.cellSize);
+        this.dc.lineTo(x + this.cellSize - bevelRad, y + this.cellSize - bevelRad);
+        this.dc.lineTo(x + bevelRad, y + this.cellSize - bevelRad);
+        this.dc.closePath();
+        gradient = this.dc.createLinearGradient(x, y + this.cellSize - bevelRad, x, y + this.cellSize);
         gradient.addColorStop(0, "rgba(0,0,0,0)");
         gradient.addColorStop(1, "rgba(0,0,0,0.5)");
-        this.drawingContext.fillStyle = gradient;
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x + this.cellSize, y);
-        this.drawingContext.lineTo(x + this.cellSize, y + this.cellSize);
-        this.drawingContext.lineTo(x + this.cellSize - bevelRad, y + this.cellSize - bevelRad);
-        this.drawingContext.lineTo(x + this.cellSize - bevelRad, y + bevelRad);
-        this.drawingContext.closePath();
-        gradient = this.drawingContext.createLinearGradient(x + this.cellSize - bevelRad, y, x + this.cellSize, y);
+        this.dc.fillStyle = gradient;
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x + this.cellSize, y);
+        this.dc.lineTo(x + this.cellSize, y + this.cellSize);
+        this.dc.lineTo(x + this.cellSize - bevelRad, y + this.cellSize - bevelRad);
+        this.dc.lineTo(x + this.cellSize - bevelRad, y + bevelRad);
+        this.dc.closePath();
+        gradient = this.dc.createLinearGradient(x + this.cellSize - bevelRad, y, x + this.cellSize, y);
         gradient.addColorStop(0, "rgba(0,0,0,0)");
         gradient.addColorStop(1, "rgba(0,0,0,0.5)");
-        this.drawingContext.fillStyle = gradient;
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x, y);
-        this.drawingContext.lineTo(x + this.cellSize, y);
-        this.drawingContext.lineTo(x + this.cellSize - bevelRad, y + bevelRad);
-        this.drawingContext.lineTo(x + bevelRad, y + bevelRad);
-        this.drawingContext.closePath();
-        gradient = this.drawingContext.createLinearGradient(x, y + bevelRad, x, y);
+        this.dc.fillStyle = gradient;
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x, y);
+        this.dc.lineTo(x + this.cellSize, y);
+        this.dc.lineTo(x + this.cellSize - bevelRad, y + bevelRad);
+        this.dc.lineTo(x + bevelRad, y + bevelRad);
+        this.dc.closePath();
+        gradient = this.dc.createLinearGradient(x, y + bevelRad, x, y);
         gradient.addColorStop(0, "rgba(255,255,255,0)");
         gradient.addColorStop(1, "rgba(255,255,255,0.4)");
-        this.drawingContext.fillStyle = gradient;
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x, y);
-        this.drawingContext.lineTo(x, y + this.cellSize);
-        this.drawingContext.lineTo(x + bevelRad, y + this.cellSize - bevelRad);
-        this.drawingContext.lineTo(x + bevelRad, y + bevelRad);
-        this.drawingContext.closePath();
-        gradient = this.drawingContext.createLinearGradient(x + bevelRad, y, x, y);
+        this.dc.fillStyle = gradient;
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x, y);
+        this.dc.lineTo(x, y + this.cellSize);
+        this.dc.lineTo(x + bevelRad, y + this.cellSize - bevelRad);
+        this.dc.lineTo(x + bevelRad, y + bevelRad);
+        this.dc.closePath();
+        gradient = this.dc.createLinearGradient(x + bevelRad, y, x, y);
         gradient.addColorStop(0, "rgba(255,255,255,0)");
         gradient.addColorStop(1, "rgba(255,255,255,0.4)");
-        this.drawingContext.fillStyle = gradient;
-        this.drawingContext.fill();
+        this.dc.fillStyle = gradient;
+        this.dc.fill();
         bevelRad = this.cellSize / 6;
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x + bevelRad, y);
-        this.drawingContext.quadraticCurveTo(x, y, x, y + bevelRad);
-        this.drawingContext.lineTo(x, y);
-        this.drawingContext.closePath();
-        this.drawingContext.fillStyle = backgroundCol;
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x + this.cellSize - bevelRad, y);
-        this.drawingContext.quadraticCurveTo(x + this.cellSize, y, x + this.cellSize, y + bevelRad);
-        this.drawingContext.lineTo(x + this.cellSize, y);
-        this.drawingContext.closePath();
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x, y + this.cellSize - bevelRad);
-        this.drawingContext.quadraticCurveTo(x, y + this.cellSize, x + bevelRad, y + this.cellSize);
-        this.drawingContext.lineTo(x, y + this.cellSize);
-        this.drawingContext.closePath();
-        this.drawingContext.fill();
-        this.drawingContext.beginPath();
-        this.drawingContext.moveTo(x + this.cellSize, y + this.cellSize - bevelRad);
-        this.drawingContext.quadraticCurveTo(x + this.cellSize, y + this.cellSize, x + this.cellSize - bevelRad, y + this.cellSize);
-        this.drawingContext.lineTo(x + this.cellSize, y + this.cellSize);
-        this.drawingContext.closePath();
-        return this.drawingContext.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x + bevelRad, y);
+        this.dc.quadraticCurveTo(x, y, x, y + bevelRad);
+        this.dc.lineTo(x, y);
+        this.dc.closePath();
+        this.dc.fillStyle = backgroundCol;
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x + this.cellSize - bevelRad, y);
+        this.dc.quadraticCurveTo(x + this.cellSize, y, x + this.cellSize, y + bevelRad);
+        this.dc.lineTo(x + this.cellSize, y);
+        this.dc.closePath();
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x, y + this.cellSize - bevelRad);
+        this.dc.quadraticCurveTo(x, y + this.cellSize, x + bevelRad, y + this.cellSize);
+        this.dc.lineTo(x, y + this.cellSize);
+        this.dc.closePath();
+        this.dc.fill();
+        this.dc.beginPath();
+        this.dc.moveTo(x + this.cellSize, y + this.cellSize - bevelRad);
+        this.dc.quadraticCurveTo(x + this.cellSize, y + this.cellSize, x + this.cellSize - bevelRad, y + this.cellSize);
+        this.dc.lineTo(x + this.cellSize, y + this.cellSize);
+        this.dc.closePath();
+        return this.dc.fill();
       }
     };
 

@@ -1,8 +1,8 @@
 # an AI module
 class TetrisAI
-    pieces:    null
+    pieces:    null # list of possible blocks
     moveCache: null # pseudo hashmap/dictionary (depends on runtime)
-    maxDepth:  0
+    maxDepth:  0    # minimax search depth
 
 
     # set personality variant

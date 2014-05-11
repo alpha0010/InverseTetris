@@ -18,22 +18,22 @@
     function SettingsMgr() {
       this.onEvtMouseMove = __bind(this.onEvtMouseMove, this);
 
-      var canvas, doStart, drawingContext, h, keyPressHandler, mouseClickHandler, mouseMoveHandler, w,
+      var canvas, context, doStart, h, keyPressHandler, mouseClickHandler, mouseMoveHandler, w,
         _this = this;
       w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
       h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-      this.scale = Math.floor(Math.min(h, w) / 300);
+      this.scale = Math.max(1, Math.min(h, w) / 300);
       canvas = document.getElementById("gameBoard");
       canvas.width = 130 * this.scale;
       canvas.height = 130 * this.scale;
-      drawingContext = canvas.getContext("2d");
-      drawingContext.font = "" + (24 * this.scale) + "px Arial";
-      drawingContext.fillStyle = "white";
-      drawingContext.fillText("Easy", 8 * this.scale, 26 * this.scale);
-      drawingContext.fillText("Normal", 8 * this.scale, 58 * this.scale);
-      drawingContext.fillText("Abnormal", 8 * this.scale, 90 * this.scale);
-      drawingContext.fillText("TetrChess", 8 * this.scale, 122 * this.scale);
-      this.dc = drawingContext;
+      context = canvas.getContext("2d");
+      context.font = "" + (24 * this.scale) + "px Arial";
+      context.fillStyle = "white";
+      context.fillText("Easy", 8 * this.scale, 26 * this.scale);
+      context.fillText("Normal", 8 * this.scale, 58 * this.scale);
+      context.fillText("Abnormal", 8 * this.scale, 90 * this.scale);
+      context.fillText("TetrChess", 8 * this.scale, 122 * this.scale);
+      this.dc = context;
       this.drawSelection();
       this.rectBounds = canvas.getBoundingClientRect();
       doStart = function(variant) {

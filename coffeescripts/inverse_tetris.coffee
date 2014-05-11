@@ -1,24 +1,24 @@
 # the game
 class InverseTetris
-    currentBoard: null
-    cellSize:        25
+    currentBoard:  null # state of current game board
+    cellSize:        25 # pixel width of a cell
     numberOfRows:    20
     numberOfColumns: 10
     rightBuffer:      5 # extra columns
     bottemBuffer:     4 # extra rows
-    tickLength:     175
-    aiTickLength:    15
-    drawingContext: null
-    pieces:         null
-    fallingBlock:   null
-    nextBlock:      null # the next block to come
-    nextBlockIdx:   null
-    aiController:   null
+    tickLength:     175 # milliseconds per game 'tick'
+    aiTickLength:    15 # millisecond delay to ask AI module for move update
+    dc:            null # canvas to draw on
+    pieces:        null # list of possible blocks
+    fallingBlock:  null # current falling block
+    nextBlock:     null # the next block to come
+    nextBlockIdx:  null # index of the next block
+    aiController:  null # the AI module
     score:      0
     totalMoves: 0
-    rectBounds:    null
-    selectedShape: -1
-    uiBounds:      null
+    rectBounds:    null # location on screen of the canvas
+    selectedShape: -1   # UI shape the mouse is hovered over
+    uiBounds:      null # coordinates of UI shapes and their remaining counts
 
 
     # set up the starting state
@@ -33,10 +33,10 @@ class InverseTetris
         canvas = document.getElementById "gameBoard"
         canvas.width  = (@cellSize + 1) * (@numberOfColumns + @rightBuffer) + 1
         canvas.height = (@cellSize + 1) * (@numberOfRows + @bottemBuffer) + 1
-        @drawingContext = canvas.getContext "2d"
-        @drawingContext.fillStyle = "rgb(38,38,38)"
-        @drawingContext.strokeStyle = "transparent"
-        @drawingContext.fillRect 0, 0, canvas.width, canvas.height
+        @dc = canvas.getContext "2d"
+        @dc.fillStyle = "rgb(38,38,38)"
+        @dc.strokeStyle = "transparent"
+        @dc.fillRect 0, 0, canvas.width, canvas.height
         @initPieces()
         @initBoard()
         @nextBlockIdx = Math.floor(Math.random() * 7)
@@ -318,14 +318,14 @@ class InverseTetris
 
     # draw the queued block
     drawNextBlock: ->
-        @drawingContext.fillStyle = "rgb(38,38,38)"
-        @drawingContext.strokeStyle = "transparent"
-        @drawingContext.fillRect @numberOfColumns * (@cellSize + 1) + 1, 0, @rightBuffer * (@cellSize + 1), @numberOfRows * (@cellSize + 1)
+        @dc.fillStyle = "rgb(38,38,38)"
+        @dc.strokeStyle = "transparent"
+        @dc.fillRect @numberOfColumns * (@cellSize + 1) + 1, 0, @rightBuffer * (@cellSize + 1), @numberOfRows * (@cellSize + 1)
         @drawScore()
         if @nextBlock is null
-            @drawingContext.font = "#{@cellSize}px Arial"
-            @drawingContext.fillStyle = "white"
-            @drawingContext.fillText("???", (@numberOfColumns + 1.25) * (@cellSize + 1), 2.25 * (@cellSize + 1))
+            @dc.font = "#{@cellSize}px Arial"
+            @dc.fillStyle = "white"
+            @dc.fillText("???", (@numberOfColumns + 1.25) * (@cellSize + 1), 2.25 * (@cellSize + 1))
             return
         cell = @createCell()
         cell.isFull = true
@@ -340,9 +340,9 @@ class InverseTetris
 
     # draw the UI bar at the bottom
     drawUI: ->
-        @drawingContext.fillStyle = "rgb(38,38,38)"
-        @drawingContext.strokeStyle = "transparent"
-        @drawingContext.fillRect 0, @numberOfRows * (@cellSize + 1) + 1, (@numberOfColumns) * (@cellSize + 1), @bottemBuffer * (@cellSize + 1)
+        @dc.fillStyle = "rgb(38,38,38)"
+        @dc.strokeStyle = "transparent"
+        @dc.fillRect 0, @numberOfRows * (@cellSize + 1) + 1, (@numberOfColumns) * (@cellSize + 1), @bottemBuffer * (@cellSize + 1)
         oldCellSize = @cellSize
         @cellSize /= 2
         for pIdx in [0...@pieces.length]
@@ -361,24 +361,24 @@ class InverseTetris
                 for shapeColumn in [0...shape[shapeRow].length]
                     if shape[shapeRow][shapeColumn] is 1
                         @drawCell cell, 2 * @numberOfRows + shapeRow + (if pIdx > 3 then 3 else 0), 1 + shapeColumn + 5 * (pIdx % 4), strokeCol
-            @drawingContext.font = "#{@cellSize}px Arial"
-            @drawingContext.fillStyle = "white"
-            @drawingContext.fillText(@uiBounds[pIdx].count, @uiBounds[pIdx].x, @uiBounds[pIdx].y - 1)
-            @drawingContext.font = "#{@cellSize*0.9}px Arial"
-            @drawingContext.fillStyle = "grey"
-            @drawingContext.fillText("(#{@pieces.ids[pIdx].toUpperCase()})", @uiBounds[pIdx].x + @cellSize, @uiBounds[pIdx].y - @cellSize / 5)
+            @dc.font = "#{@cellSize}px Arial"
+            @dc.fillStyle = "white"
+            @dc.fillText(@uiBounds[pIdx].count, @uiBounds[pIdx].x, @uiBounds[pIdx].y - 1)
+            @dc.font = "#{@cellSize*0.9}px Arial"
+            @dc.fillStyle = "grey"
+            @dc.fillText("(#{@pieces.ids[pIdx].toUpperCase()})", @uiBounds[pIdx].x + @cellSize, @uiBounds[pIdx].y - @cellSize / 5)
         @cellSize = oldCellSize
 
 
     # display the current score
     drawScore: ->
-        @drawingContext.font = "#{@cellSize}px Arial"
-        @drawingContext.fillStyle = "white"
-        @drawingContext.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1))
+        @dc.font = "#{@cellSize}px Arial"
+        @dc.fillStyle = "white"
+        @dc.fillText("Score", (@numberOfColumns + 0.5) * (@cellSize + 1), 5 * (@cellSize + 1))
         if (@totalMoves > 0)
-            @drawingContext.fillText(Math.round(1000 * @score / @totalMoves), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1))
-        @drawingContext.fillText("Blocks", (@numberOfColumns + 0.5) * (@cellSize + 1), 7.4 * (@cellSize + 1))
-        @drawingContext.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1))
+            @dc.fillText(Math.round(1000 * @score / @totalMoves), (@numberOfColumns + 0.5) * (@cellSize + 1), 6 * (@cellSize + 1))
+        @dc.fillText("Blocks", (@numberOfColumns + 0.5) * (@cellSize + 1), 7.4 * (@cellSize + 1))
+        @dc.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1))
 
 
     # draw a (styled) cell
@@ -387,91 +387,91 @@ class InverseTetris
         y = row * (@cellSize + 1) + 1
         backgroundCol = "rgb(38,38,38)"
         fillStyle = if cell.isFull then cell.fillStyle else backgroundCol
-        @drawingContext.strokeStyle = strokeCol
-        @drawingContext.strokeRect x, y, @cellSize, @cellSize
-        @drawingContext.fillStyle = fillStyle
-        @drawingContext.fillRect x, y, @cellSize, @cellSize
+        @dc.strokeStyle = strokeCol
+        @dc.strokeRect x, y, @cellSize, @cellSize
+        @dc.fillStyle = fillStyle
+        @dc.fillRect x, y, @cellSize, @cellSize
         if cell.isFull
             bevelRad = @cellSize / 4
             # bottem shadow
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x, y + @cellSize
-            @drawingContext.lineTo x + @cellSize, y + @cellSize
-            @drawingContext.lineTo x + @cellSize - bevelRad, y + @cellSize - bevelRad
-            @drawingContext.lineTo x + bevelRad, y + @cellSize - bevelRad
-            @drawingContext.closePath()
-            gradient = @drawingContext.createLinearGradient x, y + @cellSize - bevelRad, x, y + @cellSize
+            @dc.beginPath()
+            @dc.moveTo x, y + @cellSize
+            @dc.lineTo x + @cellSize, y + @cellSize
+            @dc.lineTo x + @cellSize - bevelRad, y + @cellSize - bevelRad
+            @dc.lineTo x + bevelRad, y + @cellSize - bevelRad
+            @dc.closePath()
+            gradient = @dc.createLinearGradient x, y + @cellSize - bevelRad, x, y + @cellSize
             gradient.addColorStop 0, "rgba(0,0,0,0)"
             gradient.addColorStop 1, "rgba(0,0,0,0.5)"
-            @drawingContext.fillStyle = gradient
-            @drawingContext.fill()
+            @dc.fillStyle = gradient
+            @dc.fill()
             # right shadow
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x + @cellSize, y
-            @drawingContext.lineTo x + @cellSize, y + @cellSize
-            @drawingContext.lineTo x + @cellSize - bevelRad, y + @cellSize - bevelRad
-            @drawingContext.lineTo x + @cellSize - bevelRad, y + bevelRad
-            @drawingContext.closePath()
-            gradient = @drawingContext.createLinearGradient x + @cellSize - bevelRad, y, x + @cellSize, y
+            @dc.beginPath()
+            @dc.moveTo x + @cellSize, y
+            @dc.lineTo x + @cellSize, y + @cellSize
+            @dc.lineTo x + @cellSize - bevelRad, y + @cellSize - bevelRad
+            @dc.lineTo x + @cellSize - bevelRad, y + bevelRad
+            @dc.closePath()
+            gradient = @dc.createLinearGradient x + @cellSize - bevelRad, y, x + @cellSize, y
             gradient.addColorStop 0, "rgba(0,0,0,0)"
             gradient.addColorStop 1, "rgba(0,0,0,0.5)"
-            @drawingContext.fillStyle = gradient
-            @drawingContext.fill()
+            @dc.fillStyle = gradient
+            @dc.fill()
             # top highlight
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x, y
-            @drawingContext.lineTo x + @cellSize, y
-            @drawingContext.lineTo x + @cellSize - bevelRad, y + bevelRad
-            @drawingContext.lineTo x + bevelRad, y + bevelRad
-            @drawingContext.closePath()
-            gradient = @drawingContext.createLinearGradient x, y + bevelRad, x, y
+            @dc.beginPath()
+            @dc.moveTo x, y
+            @dc.lineTo x + @cellSize, y
+            @dc.lineTo x + @cellSize - bevelRad, y + bevelRad
+            @dc.lineTo x + bevelRad, y + bevelRad
+            @dc.closePath()
+            gradient = @dc.createLinearGradient x, y + bevelRad, x, y
             gradient.addColorStop 0, "rgba(255,255,255,0)"
             gradient.addColorStop 1, "rgba(255,255,255,0.4)"
-            @drawingContext.fillStyle = gradient
-            @drawingContext.fill()
+            @dc.fillStyle = gradient
+            @dc.fill()
             # left highlight
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x, y
-            @drawingContext.lineTo x, y + @cellSize
-            @drawingContext.lineTo x + bevelRad, y + @cellSize - bevelRad
-            @drawingContext.lineTo x + bevelRad, y + bevelRad
-            @drawingContext.closePath()
-            gradient = @drawingContext.createLinearGradient x + bevelRad, y, x, y
+            @dc.beginPath()
+            @dc.moveTo x, y
+            @dc.lineTo x, y + @cellSize
+            @dc.lineTo x + bevelRad, y + @cellSize - bevelRad
+            @dc.lineTo x + bevelRad, y + bevelRad
+            @dc.closePath()
+            gradient = @dc.createLinearGradient x + bevelRad, y, x, y
             gradient.addColorStop 0, "rgba(255,255,255,0)"
             gradient.addColorStop 1, "rgba(255,255,255,0.4)"
-            @drawingContext.fillStyle = gradient
-            @drawingContext.fill()
+            @dc.fillStyle = gradient
+            @dc.fill()
             # rounded corners
             bevelRad = @cellSize / 6
             # corner top left
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x + bevelRad, y
-            @drawingContext.quadraticCurveTo x, y, x, y + bevelRad
-            @drawingContext.lineTo x, y
-            @drawingContext.closePath()
-            @drawingContext.fillStyle = backgroundCol
-            @drawingContext.fill()
+            @dc.beginPath()
+            @dc.moveTo x + bevelRad, y
+            @dc.quadraticCurveTo x, y, x, y + bevelRad
+            @dc.lineTo x, y
+            @dc.closePath()
+            @dc.fillStyle = backgroundCol
+            @dc.fill()
             # corner top right
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x + @cellSize - bevelRad, y
-            @drawingContext.quadraticCurveTo x + @cellSize, y, x + @cellSize, y + bevelRad
-            @drawingContext.lineTo x + @cellSize, y
-            @drawingContext.closePath()
-            @drawingContext.fill()
+            @dc.beginPath()
+            @dc.moveTo x + @cellSize - bevelRad, y
+            @dc.quadraticCurveTo x + @cellSize, y, x + @cellSize, y + bevelRad
+            @dc.lineTo x + @cellSize, y
+            @dc.closePath()
+            @dc.fill()
             # corner bottem left
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x, y + @cellSize - bevelRad
-            @drawingContext.quadraticCurveTo x, y + @cellSize, x + bevelRad, y + @cellSize
-            @drawingContext.lineTo x, y + @cellSize
-            @drawingContext.closePath()
-            @drawingContext.fill()
+            @dc.beginPath()
+            @dc.moveTo x, y + @cellSize - bevelRad
+            @dc.quadraticCurveTo x, y + @cellSize, x + bevelRad, y + @cellSize
+            @dc.lineTo x, y + @cellSize
+            @dc.closePath()
+            @dc.fill()
             # corner bottem right
-            @drawingContext.beginPath()
-            @drawingContext.moveTo x + @cellSize, y + @cellSize - bevelRad
-            @drawingContext.quadraticCurveTo x + @cellSize, y + @cellSize, x + @cellSize - bevelRad, y + @cellSize
-            @drawingContext.lineTo x + @cellSize, y + @cellSize
-            @drawingContext.closePath()
-            @drawingContext.fill()
+            @dc.beginPath()
+            @dc.moveTo x + @cellSize, y + @cellSize - bevelRad
+            @dc.quadraticCurveTo x + @cellSize, y + @cellSize, x + @cellSize - bevelRad, y + @cellSize
+            @dc.lineTo x + @cellSize, y + @cellSize
+            @dc.closePath()
+            @dc.fill()
 
 
     # move the falling block left (if allowed)

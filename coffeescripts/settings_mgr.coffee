@@ -1,28 +1,28 @@
 # display welcome options and init game
 class SettingsMgr
-    selectIdx:  -1
-    dc:         null
-    game:       null
-    rectBounds: null
-    scale:      1
+    selectIdx:  -1   # index of current selected option
+    dc:         null # canvas to draw on
+    game:       null # InverseTetris game object
+    rectBounds: null # location on screen of the canvas
+    scale:      1    # scale factor for drawing UI elements
 
 
     # set up canvas
     constructor: ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
-        @scale = Math.floor(Math.min(h, w) / 300)
+        @scale = Math.max 1, Math.min(h, w) / 300
         canvas = document.getElementById "gameBoard"
         canvas.width  = 130 * @scale
         canvas.height = 130 * @scale
-        drawingContext = canvas.getContext "2d"
-        drawingContext.font = "#{24*@scale}px Arial"
-        drawingContext.fillStyle = "white"
-        drawingContext.fillText "Easy",      8 * @scale,  26 * @scale
-        drawingContext.fillText "Normal",    8 * @scale,  58 * @scale
-        drawingContext.fillText "Abnormal",  8 * @scale,  90 * @scale
-        drawingContext.fillText "TetrChess", 8 * @scale, 122 * @scale
-        @dc = drawingContext
+        context = canvas.getContext "2d"
+        context.font = "#{24*@scale}px Arial"
+        context.fillStyle = "white"
+        context.fillText "Easy",      8 * @scale,  26 * @scale
+        context.fillText "Normal",    8 * @scale,  58 * @scale
+        context.fillText "Abnormal",  8 * @scale,  90 * @scale
+        context.fillText "TetrChess", 8 * @scale, 122 * @scale
+        @dc = context
         @drawSelection()
         @rectBounds = canvas.getBoundingClientRect()
         doStart = (variant) ->
