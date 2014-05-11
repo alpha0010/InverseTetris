@@ -76,7 +76,7 @@ class TetrisAI
 
 
     # return the best score possible if we choose to rotate CCW
-    testRotateCCW: (board, block, depth)->
+    testRotateCCW: (board, block, depth) ->
         oldGeom = block.geometry
         oldCol = block.column
         minVal = Number.MAX_VALUE
@@ -92,7 +92,7 @@ class TetrisAI
 
 
     # return the best score possible if we choose to rotate CW
-    testRotateCW: (board, block, depth)->
+    testRotateCW: (board, block, depth) ->
         oldGeom = block.geometry
         oldCol = block.column
         minVal = Number.MAX_VALUE
@@ -108,7 +108,7 @@ class TetrisAI
 
 
     # return the best score possible if we choose to move left
-    testMoveLeft: (board, block, depth)->
+    testMoveLeft: (board, block, depth) ->
         minVal = Number.MAX_VALUE
         while block.column > 0
             block.column -= 1
@@ -119,7 +119,7 @@ class TetrisAI
 
 
     # return the best score possible if we choose to move right
-    testMoveRight: (board, block, depth)->
+    testMoveRight: (board, block, depth) ->
         minVal = Number.MAX_VALUE
         while block.column + block.geometry[0].length < board[0].length
             block.column += 1
