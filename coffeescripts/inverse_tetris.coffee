@@ -21,7 +21,7 @@ class InverseTetris
     uiBounds:      null # coordinates of UI shapes and their remaining counts
 
 
-    # set up the starting state
+    # set up the starting states and events
     constructor: (aiModule) ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
@@ -101,7 +101,7 @@ class InverseTetris
         return
 
 
-    # init UI boundaries
+    # init UI boundaries (block button placements and counts)
     initUIBounds: ->
         @uiBounds = []
         halfSz = @cellSize / 2
@@ -131,7 +131,7 @@ class InverseTetris
     tick: =>
         if @fallingBlock is null
             if @nextBlock is null # user was too slow
-                if Math.random() < 0.7 # let the AI choose
+                if Math.random() < 0.7 # let the AI choose (sometimes; if it was always, the AI can feel "too" strong)
                     minVal = Number.MAX_VALUE
                     for idx in [0...@uiBounds.length]
                         if @uiBounds[idx].count > 0
@@ -162,7 +162,7 @@ class InverseTetris
             @drawUI()
             @tickLength = 175 # reset
         if @blockIntersects @fallingBlock.row + 1, @fallingBlock.column
-            return if @fallingBlock.row is -1 # Game Over!
+            return if @fallingBlock.row is -1 # Game Over! (all timers stopped)
             @applyBlock()
             @fallingBlock = null
             numFilledCells = 0
@@ -192,7 +192,7 @@ class InverseTetris
                 @rotateCCW()
             when 4
                 @rotateCW()
-            else
+            else  # no further moves requested, drop the block faster (will increase as game progresses)
                 @tickLength = Math.max 64, 175 - @totalMoves
                 return
         @tickLength = 175 # reset: should not happen, but this AI sometimes changes its mind
@@ -218,7 +218,7 @@ class InverseTetris
         return
 
 
-    # update the next queued block
+    # update the next queued block based on the mouse hover
     onEvtMouseClick: (evt) =>
         if @selectedShape != -1
             @nextBlock = @createFallingBlock @pieces[@selectedShape]
@@ -227,7 +227,7 @@ class InverseTetris
         return
 
 
-    # update the next queued block
+    # update the next queued block based on keyboard accelerators
     onEvtKeyPress: (evt) =>
         evtKey = null
         if evt.which == null
@@ -264,7 +264,7 @@ class InverseTetris
         geometry: shape[2..]
 
 
-    # make the falling block static
+    # make the falling block static on the current board
     applyBlock: ->
         shape = @fallingBlock.geometry
         for row in [0...shape.length]
@@ -276,7 +276,7 @@ class InverseTetris
         @checkLines()
 
 
-    # check for filled rows
+    # check for filled rows (and remove)
     checkLines: ->
         for row in [0...@numberOfRows]
             @removeRow row if @arrayIsFull @currentBoard[row]
@@ -381,7 +381,7 @@ class InverseTetris
         @dc.fillText(@totalMoves, (@numberOfColumns + 0.5) * (@cellSize + 1), 8.4 * (@cellSize + 1))
 
 
-    # draw a (styled) cell
+    # draw a (styled) cell; row and column are translated by @cellSize
     drawCell: (cell, row, column, strokeCol = "rgb(54,51,40)") ->
         x = column * (@cellSize + 1) + 1
         y = row * (@cellSize + 1) + 1

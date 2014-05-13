@@ -7,7 +7,7 @@ class SettingsMgr
     scale:      1    # scale factor for drawing UI elements
 
 
-    # set up canvas
+    # set up canvas and events
     constructor: ->
         w = window.innerWidth  || document.documentElement.clientWidth  || document.body.clientWidth
         h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight

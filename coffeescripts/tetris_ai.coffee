@@ -14,7 +14,7 @@ class TetrisAI
     initBlockChoices: (blocks) ->
         @pieces = blocks
         @moveCache = {}
-        if @maxDepth == 0 # easy mode
+        if @maxDepth == 0 # easy mode; change @evaluate() to a bad heuristic
             @evaluate = (board) ->
                 score = 0
                 for row in [0...board.length]
@@ -186,6 +186,8 @@ class TetrisAI
         score = Number.MIN_VALUE
         for piece in @pieces
             score = Math.max score, @calcMove(nextBoard, piece, depth + 1)[1]
+        # dynamically attach instance variables of name "boardId" to @moveCache,
+        # simulates a hashmap/dictionary
         @moveCache[boardId] = score if depth == 0
         return score
 
